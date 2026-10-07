@@ -23,7 +23,8 @@ scripts/
 # Local documentation and historical snapshots
 doc/
 archive/
-model/
+spont/
+NMDAR_old/
 
 *.md
 
