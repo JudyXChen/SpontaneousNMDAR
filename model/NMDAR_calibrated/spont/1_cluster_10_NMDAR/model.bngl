@@ -1,0 +1,488 @@
+# WARNING: This is an automatically generated file and will be overwritten
+#          by CellBlender on the next model export.
+
+# File uses standard MCell units for bimolecular reactions (M^-1*s^-1 and um^2*N^-1*s^-1).
+# When used with MCell, global option Model.config.use_bng_units must be set to False.
+# WARNING: Simulation with BioNetGen won't produce correct results because BioNetGen uses different units than MCell.
+
+begin parameters
+    Ca_cyto_IC 1e-7
+
+    Ca_ER_IC 150e-6
+
+    Ca_ECS_IC 0
+
+    Bf_IC 4791
+
+    Bm_IC 2e-5
+
+    n_NMDAR 10
+
+    NMDAR_IC 150
+
+    VSCC_IC 2
+
+    PMCA_IC_HEAD 998
+
+    PMCA_IC_NECK 998
+
+    NCX_IC_HEAD 142
+
+    NCX_IC_NECK 142
+
+    SERCA_IC 1000
+
+    k_CaBm_f 1e6
+
+    k_CaBm_r 1
+
+    k_Ca_N 50
+
+    k_Ca_Bf_f 1e6
+
+    k_Ca_Bf_r 2
+
+    k_SA_leak 0.1608
+
+    k_PMCA_1 1.5e8
+
+    k_PMCA_2 15
+
+    k_PMCA_3 12
+
+    k_PMCA_leak 4.3
+
+    k_NCX_1 3e8
+
+    k_NCX_2 300
+
+    k_NCX_3 600
+
+    k_NCX_leak 19.4
+
+    k_SERCA_x0x1 2e8
+
+    k_SERCA_x1x0 83.7
+
+    k_SERCA_x1x2 1e8
+
+    k_SERCA_x2x1 167.4
+
+    k_SERCA_x2y2 0.6
+
+    k_SERCA_y2x2 0.097
+
+    k_SERCA_x0y0 1.2e-3
+
+    k_SERCA_y0x0 0.4
+
+    k_SERCA_y0y1 12
+
+    k_SERCA_y1y0 30.02
+
+    k_SERCA_y1y2 6
+
+    k_SERCA_y2y1 60.04
+
+    k_SERCA_leak 0.1608
+
+    k_C0C1 2e7
+
+    k_C1C0 11
+
+    k_C1C2 1e7
+
+    k_C2C1 22
+
+    k_C20 93
+
+    k_0C2 183.2
+
+    k_C20b 97
+
+    k_0C2b 574
+
+    k_C2D 16.8
+
+    k_DC2 3.6
+
+    k_AMPAR_C0C1 9.18e6
+
+    k_AMPAR_C1C0 8520
+
+    k_AMPAR_C1C2 5.68e7
+
+    k_AMPAR_C2C1 6520
+
+    k_AMPAR_C20 8480
+
+    k_AMPAR_0C2 1800
+
+    k_AMPAR_C3C4 2.54e6
+
+    k_AMPAR_C4C3 91.4
+
+    k_AMPAR_C1C3 5780
+
+    k_AMPAR_C3C1 78.4
+
+    k_AMPAR_C2C4 344
+
+    k_AMPAR_C4C2 1.45
+
+    k_AMPAR_0C5 35.4
+
+    k_AMPAR_C50 8
+
+    k_AMPAR_C4C5 33.6
+
+    k_AMPAR_C5C4 380.8
+
+    AMPAR_IC 1200
+
+    n_AMPAR 278
+
+    n_glu 500
+
+    alpha 650
+
+    beta 60
+
+    gamma 5
+
+    delta 75
+
+    delta1 600
+
+    k_AB 30000000
+
+    k_AU 333
+
+    k_IO 250000
+
+    k_IC 450000
+
+    k_IU 1
+
+    k_FluxRyR 1.09e9
+
+    a1_IP3R 4e8
+
+    a2_IP3R 2e5
+
+    a3_IP3R 4e8
+
+    a4_IP3R 2e5
+
+    a5_IP3R 20e6
+
+    b1_IP3R 52
+
+    b2_IP3R 0.21
+
+    b3_IP3R 377.2
+
+    b4_IP3R 0.0289
+
+    b5_IP3R 1.64
+
+    k_IP3R_Ca_flux 1.19e8
+
+    # Fixed-voltage channel rates for a spontaneous release at -67 mV.
+    # All evaluated rates are in s^-1. The VSCC current-to-event conversion
+    # uses V in volts, N_A = 6.022e23 mol^-1, F = 96485.33212 C mol^-1,
+    # and gamma_VSCC = 3.72e-12 S. The NMDAR block rate assumes 1 mM Mg.
+    V_CLAMP_mV -67
+    MG_ECS_mM 1
+
+    k_VSCC_1_forward 2066.67391179002
+    k_VSCC_2_forward 2726.58356408581
+    k_VSCC_3_forward 2614.62902222498
+    k_VSCC_4_forward 2782.08096797592
+    k_VSCC_1_reverse 22519.6629881921
+    k_VSCC_2_reverse 61923.6476827403
+    k_VSCC_3_reverse 54735.8721958245
+    k_VSCC_4_reverse 45899.4549295609
+    k_VSCC_Ca 2625195.96325191
+
+    # Calibrated explicit NMDAR Mg block/unblock rates at -67 mV and 1 mM Mg.
+    k_NMDAR_block 31740.869665975
+    k_NMDAR_unblock 5052.62106921663
+    # 4.5 pS calcium-specific conductance, +3 mV reversal potential.
+    k_NMDAR_Ca 983037.67922757
+
+    k_mGluR_fGlu 2*1e7*5.0
+
+    k_mGluR_bGlu 7.85
+
+    k_mGluR_Glu_IP3 5*(0.5*0.0155)
+
+    k_mGluR_Glu_fGlu 1e7/5.0
+
+    k_mGluR_Glu_bGlu 2*7.85
+
+    k_mGluR_Glu_Glu_IP3 5*(0.0155)
+
+    k_PLC_fCa 3.0e6
+
+    k_PLC_bCa 1.0
+
+    k_PLC_Ca_fPIP2 2.5e6*10e-6
+
+    k_PLC_Ca_bPIP2 10.0
+
+    k_PLC_Ca_PIP2_IP3 0.155
+
+    k_IP3_degrade 0.28
+
+end parameters
+
+begin molecule types
+    Ca2
+    Bm
+    CaBm
+    Bf
+    CaBf
+    VSCC
+    PMCA
+    PMCA1
+    NCX
+    NCX1
+    SERCAx
+    SERCAx1
+    SERCAx2
+    SERCAy
+    SERCAy1
+    SERCAy2
+    VSCC_0
+    VSCC_1
+    VSCC_2
+    VSCC_3
+    NMDAR_0
+    NMDAR_1
+    NMDAR_2
+    NMDAR_D
+    NMDAR_0B
+    NMDAR_1B
+    NMDAR_2B
+    NMDAR_DB
+    NMDAR
+    NMDAR_B
+    AMPAR_0
+    AMPAR_1
+    AMPAR_2
+    AMPAR_3
+    AMPAR_4
+    AMPAR_5
+    AMPAR
+    glu
+    Ca2_ER
+    RyR_C(a~0~1~2~3~4,i~0~1~2~3~4)
+    RyR_O(a~0~1~2~3~4,i~0~1~2~3~4)
+    RyR_CI(a~0~1~2~3~4,i~0~1~2~3~4)
+    RyR_OI(a~0~1~2~3~4,i~0~1~2~3~4)
+# ORIGINAL 8-subunit IP3R (single subunit conducts) — replaced by 24-state channel model
+#    IP3R_000
+#    IP3R_001
+#    IP3R_010
+#    IP3R_011
+#    IP3R_100
+#    IP3R_101
+#    IP3R_110
+#    IP3R_111
+    IP3R(s1~000~001~010~011~100~101~110~111,s2~000~001~010~011~100~101~110~111,s3~000~001~010~011~100~101~110~111)
+    IP3
+    mGlur
+    mGlur_Glu
+    mGlur_Glu_Glu
+    PLC
+    PLC_Ca
+    PLC_Ca_PIP2
+end molecule types
+
+begin reaction rules
+    Ca2 + Bm <-> CaBm k_CaBm_f, k_CaBm_r
+    Ca2Null: Ca2 -> 0 k_Ca_N
+    Ca2@IN + Bf <-> CaBf k_Ca_Bf_f, k_Ca_Bf_r
+    # Fixed -67 mV VSCC gating and calcium entry. The GHK conversion used
+    # k = gamma*N_A/(2F) * V * (0.393-exp(-V/80.36))/(1-exp(V/80.36)).
+    rxn_VSCC_gate_1_forward: VSCC_0 -> VSCC_1 k_VSCC_1_forward
+    rxn_VSCC_gate_1_reverse: VSCC_1 -> VSCC_0 k_VSCC_1_reverse
+    rxn_VSCC_gate_2_forward: VSCC_1 -> VSCC_2 k_VSCC_2_forward
+    rxn_VSCC_gate_2_reverse: VSCC_2 -> VSCC_1 k_VSCC_2_reverse
+    rxn_VSCC_gate_3_forward: VSCC_2 -> VSCC_3 k_VSCC_3_forward
+    rxn_VSCC_gate_3_reverse: VSCC_3 -> VSCC_2 k_VSCC_3_reverse
+    rxn_VSCC_gate_4_forward: VSCC_3 -> VSCC k_VSCC_4_forward
+    rxn_VSCC_gate_4_reverse: VSCC -> VSCC_3 k_VSCC_4_reverse
+    rxn_VSCC: VSCC -> VSCC + Ca2@IN k_VSCC_Ca
+    Ca2@IN + PMCA <-> PMCA1 k_PMCA_1, k_PMCA_2
+    rxn_PMCA: PMCA1 -> PMCA k_PMCA_3
+    rxn_PMCA_leak: PMCA -> PMCA + Ca2@IN k_PMCA_leak
+    Ca2@IN + NCX <-> NCX1 k_NCX_1, k_NCX_2
+    rxn_NCX: NCX1 -> NCX k_NCX_3
+    rxn_NCX_leak: NCX -> NCX + Ca2@IN k_NCX_leak
+    rxn_SERCA1f: SERCAx + Ca2@OUT -> SERCAx1 k_SERCA_x0x1
+    rxn_SERCA1r: SERCAx1 -> SERCAx + Ca2@OUT k_SERCA_x1x0
+    rxn_SERCA2f: SERCAx1 + Ca2@OUT -> SERCAx2 k_SERCA_x1x2
+    rxn_SERCA2r: SERCAx2 -> SERCAx1 + Ca2@OUT k_SERCA_x2x1
+    # SERCA ER-side steps split from reversible into explicit named forward/reverse
+    # rules so each direction is individually addressable by find_reaction_rule and
+    # countable. Kinetically identical to the reversible form (same rate constants).
+    # ORIGINAL (unnamed reversible form) — split for direct flux counting
+    #    SERCAx2 <-> SERCAy2 k_SERCA_x2y2, k_SERCA_y2x2
+    #    SERCAy2 <-> SERCAy1 + Ca2_ER@IN k_SERCA_y2y1, k_SERCA_y1y2
+    #    SERCAy1 <-> SERCAy + Ca2_ER@IN k_SERCA_y1y0, k_SERCA_y0y1
+    rxn_SERCA_x2y2f: SERCAx2 -> SERCAy2 k_SERCA_x2y2
+    rxn_SERCA_x2y2r: SERCAy2 -> SERCAx2 k_SERCA_y2x2
+    rxn_SERCA_y2y1f: SERCAy2 -> SERCAy1 + Ca2_ER@IN k_SERCA_y2y1
+    rxn_SERCA_y2y1r: SERCAy1 + Ca2_ER@IN -> SERCAy2 k_SERCA_y1y2
+    rxn_SERCA_y1y0f: SERCAy1 -> SERCAy + Ca2_ER@IN k_SERCA_y1y0
+    rxn_SERCA_y1y0r: SERCAy + Ca2_ER@IN -> SERCAy1 k_SERCA_y0y1
+    SERCAy <-> SERCAx k_SERCA_y0x0, k_SERCA_x0y0
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+    NMDAR_0 + glu@OUT <-> NMDAR_1 k_C0C1, k_C1C0
+    NMDAR_1 + glu@OUT <-> NMDAR_2 k_C1C2, k_C2C1
+    NMDAR_2 <-> NMDAR k_C20, k_0C2
+    NMDAR_2 <-> NMDAR_D k_C2D, k_DC2
+    NMDAR_0B + glu@OUT <-> NMDAR_1B k_C0C1, k_C1C0
+    NMDAR_1B + glu@OUT <-> NMDAR_2B k_C1C2, k_C2C1
+    NMDAR_2B <-> NMDAR_B k_C20b, k_0C2b
+    NMDAR_2B <-> NMDAR_DB k_C2D, k_DC2
+    # Calibrated explicit Mg block and calcium entry, clamped at -67 mV.
+    rxn_NMDAR_block: NMDAR -> NMDAR_B k_NMDAR_block
+    rxn_NMDAR_unblock: NMDAR_B -> NMDAR k_NMDAR_unblock
+    rxn_NMDAR: NMDAR -> NMDAR + Ca2@IN k_NMDAR_Ca
+    AMPAR_0 + glu@OUT <-> AMPAR_1 k_AMPAR_C0C1, k_AMPAR_C1C0
+    AMPAR_1 + glu@OUT <-> AMPAR_2 k_AMPAR_C1C2, k_AMPAR_C2C1
+    AMPAR_2 <-> AMPAR k_AMPAR_C20, k_AMPAR_0C2
+    AMPAR_1 <-> AMPAR_3 k_AMPAR_C1C3, k_AMPAR_C3C1
+    AMPAR_3 + glu@OUT <-> AMPAR_4 k_AMPAR_C3C4, k_AMPAR_C4C3
+    AMPAR_2 <-> AMPAR_4 k_AMPAR_C2C4, k_AMPAR_C4C2
+    AMPAR_4 <-> AMPAR_5 k_AMPAR_C4C5, k_AMPAR_C5C4
+    AMPAR_5 <-> AMPAR k_AMPAR_C50, k_AMPAR_0C5
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction '' was generated as Python code because it contains features not supported by BNGL
+#     reaction 'rxn_SERCA_leak' was generated as Python code because it contains features not supported by BNGL
+    RyR_C(a~0) + Ca2@OUT <-> RyR_C(a~1) 4*k_AB, 1*k_AU
+    RyR_C(a~1) + Ca2@OUT <-> RyR_C(a~2) 3*k_AB, 2*k_AU
+    RyR_C(a~2) + Ca2@OUT <-> RyR_C(a~3) 2*k_AB, 3*k_AU
+    RyR_C(a~3) + Ca2@OUT <-> RyR_C(a~4) 1*k_AB, 4*k_AU
+    RyR_C(i~0) + Ca2@OUT <-> RyR_C(i~1) 4*k_IC, 1*k_IU
+    RyR_C(i~1) + Ca2@OUT <-> RyR_C(i~2) 3*k_IC, 2*k_IU
+    RyR_C(i~2) + Ca2@OUT <-> RyR_C(i~3) 2*k_IC, 3*k_IU
+    RyR_C(i~3) + Ca2@OUT <-> RyR_C(i~4) 1*k_IC, 4*k_IU
+    RyR_O(a~0) + Ca2@OUT <-> RyR_O(a~1) 4*k_AB, 1*k_AU
+    RyR_O(a~1) + Ca2@OUT <-> RyR_O(a~2) 3*k_AB, 2*k_AU
+    RyR_O(a~2) + Ca2@OUT <-> RyR_O(a~3) 2*k_AB, 3*k_AU
+    RyR_O(a~3) + Ca2@OUT <-> RyR_O(a~4) 1*k_AB, 4*k_AU
+    RyR_O(i~0) + Ca2@OUT <-> RyR_O(i~1) 4*k_IO, 1*k_IU
+    RyR_O(i~1) + Ca2@OUT <-> RyR_O(i~2) 3*k_IO, 2*k_IU
+    RyR_O(i~2) + Ca2@OUT <-> RyR_O(i~3) 2*k_IO, 3*k_IU
+    RyR_O(i~3) + Ca2@OUT <-> RyR_O(i~4) 1*k_IO, 4*k_IU
+    RyR_CI(a~0) + Ca2@OUT <-> RyR_CI(a~1) 4*k_AB, 1*k_AU
+    RyR_CI(a~1) + Ca2@OUT <-> RyR_CI(a~2) 3*k_AB, 2*k_AU
+    RyR_CI(a~2) + Ca2@OUT <-> RyR_CI(a~3) 2*k_AB, 3*k_AU
+    RyR_CI(a~3) + Ca2@OUT <-> RyR_CI(a~4) 1*k_AB, 4*k_AU
+    RyR_CI(i~0) + Ca2@OUT <-> RyR_CI(i~1) 4*k_IC, 1*k_IU
+    RyR_CI(i~1) + Ca2@OUT <-> RyR_CI(i~2) 3*k_IC, 2*k_IU
+    RyR_CI(i~2) + Ca2@OUT <-> RyR_CI(i~3) 2*k_IC, 3*k_IU
+    RyR_CI(i~3) + Ca2@OUT <-> RyR_CI(i~4) 1*k_IC, 4*k_IU
+    RyR_OI(a~0) + Ca2@OUT <-> RyR_OI(a~1) 4*k_AB, 1*k_AU
+    RyR_OI(a~1) + Ca2@OUT <-> RyR_OI(a~2) 3*k_AB, 2*k_AU
+    RyR_OI(a~2) + Ca2@OUT <-> RyR_OI(a~3) 2*k_AB, 3*k_AU
+    RyR_OI(a~3) + Ca2@OUT <-> RyR_OI(a~4) 1*k_AB, 4*k_AU
+    RyR_OI(i~0) + Ca2@OUT <-> RyR_OI(i~1) 4*k_IO, 1*k_IU
+    RyR_OI(i~1) + Ca2@OUT <-> RyR_OI(i~2) 3*k_IO, 2*k_IU
+    RyR_OI(i~2) + Ca2@OUT <-> RyR_OI(i~3) 2*k_IO, 3*k_IU
+    RyR_OI(i~3) + Ca2@OUT <-> RyR_OI(i~4) 1*k_IO, 4*k_IU
+    RyR_O(a~0) -> RyR_C(a~0) beta
+    RyR_O(a~1) -> RyR_C(a~1) beta
+    RyR_O(a~2) -> RyR_C(a~2) beta
+    RyR_O(a~3) -> RyR_C(a~3) beta
+    RyR_C(a~4) <-> RyR_O(a~4) alpha, beta
+    RyR_CI <-> RyR_OI alpha, beta
+    RyR_CI(i~0) -> RyR_C(i~0) gamma
+    RyR_C(i~1) <-> RyR_CI(i~1) delta1, gamma
+    RyR_C(i~2) <-> RyR_CI(i~1) delta1, gamma
+    RyR_C(i~3) <-> RyR_CI(i~3) delta1, gamma
+    RyR_C(i~4) <-> RyR_CI(i~4) delta1, gamma
+    RyR_OI(i~0) -> RyR_O(i~0) gamma
+    RyR_O(i~1) <-> RyR_OI(i~1) delta, gamma
+    RyR_O(i~2) <-> RyR_OI(i~2) delta, gamma
+    RyR_O(i~3) <-> RyR_OI(i~3) delta, gamma
+    RyR_O(i~4) <-> RyR_OI(i~4) delta, gamma
+    # RyR flux split from reversible into named forward/reverse so each direction is
+    # countable. Kinetically identical (same rate both ways, as in the original).
+    # ORIGINAL (unnamed reversible form) — split for direct flux counting
+    #    Ca2_ER@IN + RyR_O <-> RyR_O + Ca2@OUT k_FluxRyR, k_FluxRyR
+    rxn_RyR_flux_f: Ca2_ER@IN + RyR_O -> RyR_O + Ca2@OUT k_FluxRyR
+    rxn_RyR_flux_r: Ca2@OUT + RyR_O -> RyR_O + Ca2_ER@IN k_FluxRyR
+# ORIGINAL 8-subunit IP3R (single subunit conducts) — replaced by 24-state channel model
+#    IP3R_000 + IP3@OUT <-> IP3R_100 a1_IP3R, b1_IP3R
+#    IP3R_100 + Ca2@OUT <-> IP3R_101 a2_IP3R, b2_IP3R
+#    IP3R_001 + IP3@OUT <-> IP3R_101 a3_IP3R, b3_IP3R
+#    IP3R_000 + Ca2@OUT <-> IP3R_001 a4_IP3R, b4_IP3R
+#    IP3R_010 + IP3@OUT <-> IP3R_110 a1_IP3R, b1_IP3R
+#    IP3R_110 + Ca2@OUT <-> IP3R_111 a2_IP3R, b2_IP3R
+#    IP3R_011 + IP3@OUT <-> IP3R_111 a3_IP3R, b3_IP3R
+#    IP3R_010 + Ca2@OUT <-> IP3R_011 a4_IP3R, b4_IP3R
+#    IP3R_000 + Ca2@OUT <-> IP3R_010 a5_IP3R, b5_IP3R
+#    IP3R_100 + Ca2@OUT <-> IP3R_110 a5_IP3R, b5_IP3R
+#    IP3R_001 + Ca2@OUT <-> IP3R_011 a5_IP3R, b5_IP3R
+#    IP3R_101 + Ca2@OUT <-> IP3R_111 a5_IP3R, b5_IP3R
+    # subunit s1
+    IP3R(s1~000) + IP3@OUT <-> IP3R(s1~100) a1_IP3R, b1_IP3R
+    IP3R(s1~100) + Ca2@OUT <-> IP3R(s1~101) a2_IP3R, b2_IP3R
+    IP3R(s1~001) + IP3@OUT <-> IP3R(s1~101) a3_IP3R, b3_IP3R
+    IP3R(s1~000) + Ca2@OUT <-> IP3R(s1~001) a4_IP3R, b4_IP3R
+    IP3R(s1~010) + IP3@OUT <-> IP3R(s1~110) a1_IP3R, b1_IP3R
+    IP3R(s1~110) + Ca2@OUT <-> IP3R(s1~111) a2_IP3R, b2_IP3R
+    IP3R(s1~011) + IP3@OUT <-> IP3R(s1~111) a3_IP3R, b3_IP3R
+    IP3R(s1~010) + Ca2@OUT <-> IP3R(s1~011) a4_IP3R, b4_IP3R
+    IP3R(s1~000) + Ca2@OUT <-> IP3R(s1~010) a5_IP3R, b5_IP3R
+    IP3R(s1~100) + Ca2@OUT <-> IP3R(s1~110) a5_IP3R, b5_IP3R
+    IP3R(s1~001) + Ca2@OUT <-> IP3R(s1~011) a5_IP3R, b5_IP3R
+    IP3R(s1~101) + Ca2@OUT <-> IP3R(s1~111) a5_IP3R, b5_IP3R
+    # subunit s2
+    IP3R(s2~000) + IP3@OUT <-> IP3R(s2~100) a1_IP3R, b1_IP3R
+    IP3R(s2~100) + Ca2@OUT <-> IP3R(s2~101) a2_IP3R, b2_IP3R
+    IP3R(s2~001) + IP3@OUT <-> IP3R(s2~101) a3_IP3R, b3_IP3R
+    IP3R(s2~000) + Ca2@OUT <-> IP3R(s2~001) a4_IP3R, b4_IP3R
+    IP3R(s2~010) + IP3@OUT <-> IP3R(s2~110) a1_IP3R, b1_IP3R
+    IP3R(s2~110) + Ca2@OUT <-> IP3R(s2~111) a2_IP3R, b2_IP3R
+    IP3R(s2~011) + IP3@OUT <-> IP3R(s2~111) a3_IP3R, b3_IP3R
+    IP3R(s2~010) + Ca2@OUT <-> IP3R(s2~011) a4_IP3R, b4_IP3R
+    IP3R(s2~000) + Ca2@OUT <-> IP3R(s2~010) a5_IP3R, b5_IP3R
+    IP3R(s2~100) + Ca2@OUT <-> IP3R(s2~110) a5_IP3R, b5_IP3R
+    IP3R(s2~001) + Ca2@OUT <-> IP3R(s2~011) a5_IP3R, b5_IP3R
+    IP3R(s2~101) + Ca2@OUT <-> IP3R(s2~111) a5_IP3R, b5_IP3R
+    # subunit s3
+    IP3R(s3~000) + IP3@OUT <-> IP3R(s3~100) a1_IP3R, b1_IP3R
+    IP3R(s3~100) + Ca2@OUT <-> IP3R(s3~101) a2_IP3R, b2_IP3R
+    IP3R(s3~001) + IP3@OUT <-> IP3R(s3~101) a3_IP3R, b3_IP3R
+    IP3R(s3~000) + Ca2@OUT <-> IP3R(s3~001) a4_IP3R, b4_IP3R
+    IP3R(s3~010) + IP3@OUT <-> IP3R(s3~110) a1_IP3R, b1_IP3R
+    IP3R(s3~110) + Ca2@OUT <-> IP3R(s3~111) a2_IP3R, b2_IP3R
+    IP3R(s3~011) + IP3@OUT <-> IP3R(s3~111) a3_IP3R, b3_IP3R
+    IP3R(s3~010) + Ca2@OUT <-> IP3R(s3~011) a4_IP3R, b4_IP3R
+    IP3R(s3~000) + Ca2@OUT <-> IP3R(s3~010) a5_IP3R, b5_IP3R
+    IP3R(s3~100) + Ca2@OUT <-> IP3R(s3~110) a5_IP3R, b5_IP3R
+    IP3R(s3~001) + Ca2@OUT <-> IP3R(s3~011) a5_IP3R, b5_IP3R
+    IP3R(s3~101) + Ca2@OUT <-> IP3R(s3~111) a5_IP3R, b5_IP3R
+    mGlur + glu@OUT <-> mGlur_Glu k_mGluR_fGlu, k_mGluR_bGlu
+    mGlur_Glu -> mGlur + glu@OUT + IP3@IN k_mGluR_Glu_IP3
+    glu@OUT + mGlur_Glu <-> mGlur_Glu_Glu k_mGluR_Glu_fGlu, k_mGluR_Glu_bGlu
+    mGlur_Glu_Glu -> mGlur_Glu + glu@OUT + IP3@IN k_mGluR_Glu_Glu_IP3
+    Ca2@IN + PLC <-> PLC_Ca k_PLC_fCa, k_PLC_bCa
+    PLC_Ca <-> PLC_Ca_PIP2 k_PLC_Ca_fPIP2, k_PLC_Ca_bPIP2
+    PLC_Ca_PIP2 -> PLC_Ca + IP3@IN k_PLC_Ca_PIP2_IP3
+#    IP3R_110 + Ca2_ER@IN -> IP3R_110 + Ca2@OUT k_IP3R_Ca_flux
+    rxn_IP3R_flux: IP3R(s1~110,s2~110,s3~110) + Ca2_ER@IN -> IP3R(s1~110,s2~110,s3~110) + Ca2@OUT k_IP3R_Ca_flux
+    IP3 -> 0 k_IP3_degrade
+end reaction rules

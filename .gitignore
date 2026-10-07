@@ -23,8 +23,8 @@ scripts/
 # Local documentation and historical snapshots
 doc/
 archive/
-model/
-
+evoked/
+NMDAR_old/
 *.md
 
 # macOS
