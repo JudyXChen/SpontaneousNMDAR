@@ -238,6 +238,10 @@ instantiation.add_geometry_object(Spine_base)
 instantiation.add_geometry_object(Mushroom_dendrite)
 instantiation.add_geometry_object(Mushroom_transparent)
 instantiation.add_geometry_object(SA)
+# Place the spatially restricted NMDARs before other surface molecules can
+# occupy their cluster tiles; preserve all counts, regions, and release times.
+for site in NMDAR_cluster_sites:
+    instantiation.add_release_site(site)
 instantiation.add_release_site(Release_Site_1)
 instantiation.add_release_site(Release_Site_2)
 instantiation.add_release_site(Release_Site_3)
@@ -246,8 +250,6 @@ instantiation.add_release_site(Release_Site_5)
 instantiation.add_release_site(Release_Site_6)
 instantiation.add_release_site(Release_Site_7)
 instantiation.add_release_site(Release_Site_8)
-for site in NMDAR_cluster_sites:
-    instantiation.add_release_site(site)
 instantiation.add_release_site(Release_Site_10)
 if GLU_SITES in ('1', 'both'):
     instantiation.add_release_site(Release_Site_11)
