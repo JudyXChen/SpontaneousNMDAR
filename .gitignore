@@ -1,32 +1,22 @@
-# MCell simulation output
+/*
+!/.gitignore
+!/model/
+*.sh
+
+model/**/snapshots/
+
+# Generated simulation output
 react_data/
 viz_data/
 logs/
 reports/
 *.dat
-
-# CellBlender export artifacts (regenerated, not inputs)
-Scene.data_model.json
+*.log
+Scene.data_model*.json
 data_layout.json*
 start_time.txt
 
-# Python
+# Python and macOS caches
 __pycache__/
 *.py[cod]
-
-# Analysis output
-results/
-
-# Local analysis and plotting code
-scripts/
-
-# Local documentation and historical snapshots
-doc/
-archive/
-spont/
-NMDAR_old/
-
-*.md
-
-# macOS
 .DS_Store

@@ -1,0 +1,8 @@
+{
+  "time_step_s": 1e-07,
+  "duration_s": 0.045,
+  "waveform_start_s": 0.01,
+  "vgcc_populations": {
+    "sVGCC": 1.0
+  }
+}

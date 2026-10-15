@@ -1,0 +1,98 @@
+{
+  "Ca2": [
+    "diffusion_constant_3d",
+    2.2e-06
+  ],
+  "Bm": [
+    "diffusion_constant_3d",
+    2e-07
+  ],
+  "CaBm": [
+    "diffusion_constant_3d",
+    2e-07
+  ],
+  "Bf": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "CaBf": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "PMCA": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "PMCA1": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "NCX": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "NCX1": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_0": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_1": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_2": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_3": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_4": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR_5": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "AMPAR": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "glu": [
+    "diffusion_constant_3d",
+    2.2e-06
+  ],
+  "IP3": [
+    "diffusion_constant_3d",
+    2.8e-06
+  ],
+  "mGlur": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "mGlur_Glu": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "mGlur_Glu_Glu": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "PLC": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "PLC_Ca": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "PLC_Ca_PIP2": [
+    "diffusion_constant_2d",
+    0
+  ]
+}

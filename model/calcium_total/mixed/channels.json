@@ -1,0 +1,11 @@
+{
+  "nmda": {
+    "eNMDAR": "evoked",
+    "sNMDAR": "rest"
+  },
+  "vgcc": {
+    "eVGCC": "evoked"
+  },
+  "rest_voltage_mV": -67,
+  "magnesium_mM": 1
+}

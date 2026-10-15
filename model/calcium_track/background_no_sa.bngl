@@ -1,0 +1,159 @@
+# Non-ER chemistry retained from model/shared/background.bngl.
+begin parameters
+    Ca_cyto_IC 1e-7
+    Ca_ER_IC 150e-6
+    Ca_ECS_IC 0
+    Bf_IC 4791
+    Bm_IC 2e-5
+    n_NMDAR 20
+    NMDAR_IC 150
+    VSCC_IC 2
+    PMCA_IC_HEAD 998
+    PMCA_IC_NECK 998
+    NCX_IC_HEAD 142
+    NCX_IC_NECK 142
+    SERCA_IC 1000
+    k_CaBm_f 1e6
+    k_CaBm_r 1
+    k_Ca_N 50
+    k_Ca_Bf_f 1e6
+    k_Ca_Bf_r 2
+    k_SA_leak 0.1608
+    k_PMCA_1 1.5e8
+    k_PMCA_2 15
+    k_PMCA_3 12
+    k_PMCA_leak 4.3
+    k_NCX_1 3e8
+    k_NCX_2 300
+    k_NCX_3 600
+    k_NCX_leak 19.4
+    k_SERCA_x0x1 2e8
+    k_SERCA_x1x0 83.7
+    k_SERCA_x1x2 1e8
+    k_SERCA_x2x1 167.4
+    k_SERCA_x2y2 0.6
+    k_SERCA_y2x2 0.097
+    k_SERCA_x0y0 1.2e-3
+    k_SERCA_y0x0 0.4
+    k_SERCA_y0y1 12
+    k_SERCA_y1y0 30.02
+    k_SERCA_y1y2 6
+    k_SERCA_y2y1 60.04
+    k_SERCA_leak 0.1608
+    k_C0C1 2e7
+    k_C1C0 11
+    k_C1C2 1e7
+    k_C2C1 22
+    k_C20 93
+    k_0C2 183.2
+    k_C20b 97
+    k_0C2b 574
+    k_C2D 16.8
+    k_DC2 3.6
+    k_AMPAR_C0C1 9.18e6
+    k_AMPAR_C1C0 8520
+    k_AMPAR_C1C2 5.68e7
+    k_AMPAR_C2C1 6520
+    k_AMPAR_C20 8480
+    k_AMPAR_0C2 1800
+    k_AMPAR_C3C4 2.54e6
+    k_AMPAR_C4C3 91.4
+    k_AMPAR_C1C3 5780
+    k_AMPAR_C3C1 78.4
+    k_AMPAR_C2C4 344
+    k_AMPAR_C4C2 1.45
+    k_AMPAR_0C5 35.4
+    k_AMPAR_C50 8
+    k_AMPAR_C4C5 33.6
+    k_AMPAR_C5C4 380.8
+    AMPAR_IC 1200
+    n_AMPAR 278
+    n_glu 250
+    alpha 650
+    beta 60
+    gamma 5
+    delta 75
+    delta1 600
+    k_AB 30000000
+    k_AU 333
+    k_IO 250000
+    k_IC 450000
+    k_IU 1
+    k_FluxRyR 1.09e9
+    a1_IP3R 4e8
+    a2_IP3R 2e5
+    a3_IP3R 4e8
+    a4_IP3R 2e5
+    a5_IP3R 20e6
+    b1_IP3R 52
+    b2_IP3R 0.21
+    b3_IP3R 377.2
+    b4_IP3R 0.0289
+    b5_IP3R 1.64
+    k_IP3R_Ca_flux 1.19e8
+    k_mGluR_fGlu 2*1e7*5.0
+    k_mGluR_bGlu 7.85
+    k_mGluR_Glu_IP3 5*(0.5*0.0155)
+    k_mGluR_Glu_fGlu 1e7/5.0
+    k_mGluR_Glu_bGlu 2*7.85
+    k_mGluR_Glu_Glu_IP3 5*(0.0155)
+    k_PLC_fCa 3.0e6
+    k_PLC_bCa 1.0
+    k_PLC_Ca_fPIP2 2.5e6*10e-6
+    k_PLC_Ca_bPIP2 10.0
+    k_PLC_Ca_PIP2_IP3 0.155
+    k_IP3_degrade 0.28
+end parameters
+begin molecule types
+    Ca2
+    Bm
+    CaBm
+    Bf
+    CaBf
+    PMCA
+    PMCA1
+    NCX
+    NCX1
+    AMPAR_0
+    AMPAR_1
+    AMPAR_2
+    AMPAR_3
+    AMPAR_4
+    AMPAR_5
+    AMPAR
+    glu
+    IP3
+    mGlur
+    mGlur_Glu
+    mGlur_Glu_Glu
+    PLC
+    PLC_Ca
+    PLC_Ca_PIP2
+end molecule types
+begin reaction rules
+    Ca2 + Bm <-> CaBm k_CaBm_f, k_CaBm_r
+    Ca2Null: Ca2 -> 0 k_Ca_N
+    Ca2@IN + Bf <-> CaBf k_Ca_Bf_f, k_Ca_Bf_r
+    Ca2@IN + PMCA <-> PMCA1 k_PMCA_1, k_PMCA_2
+    rxn_PMCA: PMCA1 -> PMCA k_PMCA_3
+    rxn_PMCA_leak: PMCA -> PMCA + Ca2@IN k_PMCA_leak
+    Ca2@IN + NCX <-> NCX1 k_NCX_1, k_NCX_2
+    rxn_NCX: NCX1 -> NCX k_NCX_3
+    rxn_NCX_leak: NCX -> NCX + Ca2@IN k_NCX_leak
+    AMPAR_0 + glu@OUT <-> AMPAR_1 k_AMPAR_C0C1, k_AMPAR_C1C0
+    AMPAR_1 + glu@OUT <-> AMPAR_2 k_AMPAR_C1C2, k_AMPAR_C2C1
+    AMPAR_2 <-> AMPAR k_AMPAR_C20, k_AMPAR_0C2
+    AMPAR_1 <-> AMPAR_3 k_AMPAR_C1C3, k_AMPAR_C3C1
+    AMPAR_3 + glu@OUT <-> AMPAR_4 k_AMPAR_C3C4, k_AMPAR_C4C3
+    AMPAR_2 <-> AMPAR_4 k_AMPAR_C2C4, k_AMPAR_C4C2
+    AMPAR_4 <-> AMPAR_5 k_AMPAR_C4C5, k_AMPAR_C5C4
+    AMPAR_5 <-> AMPAR k_AMPAR_C50, k_AMPAR_0C5
+    mGlur + glu@OUT <-> mGlur_Glu k_mGluR_fGlu, k_mGluR_bGlu
+    mGlur_Glu -> mGlur + glu@OUT + IP3@IN k_mGluR_Glu_IP3
+    glu@OUT + mGlur_Glu <-> mGlur_Glu_Glu k_mGluR_Glu_fGlu, k_mGluR_Glu_bGlu
+    mGlur_Glu_Glu -> mGlur_Glu + glu@OUT + IP3@IN k_mGluR_Glu_Glu_IP3
+    Ca2@IN + PLC <-> PLC_Ca k_PLC_fCa, k_PLC_bCa
+    PLC_Ca <-> PLC_Ca_PIP2 k_PLC_Ca_fPIP2, k_PLC_Ca_bPIP2
+    PLC_Ca_PIP2 -> PLC_Ca + IP3@IN k_PLC_Ca_PIP2_IP3
+    IP3 -> 0 k_IP3_degrade
+end reaction rules

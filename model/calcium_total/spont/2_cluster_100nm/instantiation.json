@@ -1,0 +1,28 @@
+{
+  "distance_nm": 100,
+  "clusters": [
+    {
+      "walls": [
+        1681,
+        1686,
+        1688
+      ],
+      "receptors": 10,
+      "population": "sNMDAR",
+      "glutamate": 250,
+      "release_time_s": 0.01
+    },
+    {
+      "walls": [
+        1687,
+        1691,
+        1694
+      ],
+      "receptors": 10,
+      "population": "sNMDAR",
+      "glutamate": 250,
+      "release_time_s": 0.01
+    }
+  ],
+  "glutamate_z_um": 1.655
+}

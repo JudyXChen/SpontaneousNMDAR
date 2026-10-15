@@ -1,0 +1,24 @@
+{
+  "states": [
+    "NMDAR_0",
+    "NMDAR_1",
+    "NMDAR_2",
+    "NMDAR_D",
+    "NMDAR_0B",
+    "NMDAR_1B",
+    "NMDAR_2B",
+    "NMDAR_DB",
+    "NMDAR",
+    "NMDAR_B"
+  ],
+  "rules": [
+    "NMDAR_0 + glu@OUT <-> NMDAR_1 k_C0C1, k_C1C0",
+    "NMDAR_1 + glu@OUT <-> NMDAR_2 k_C1C2, k_C2C1",
+    "NMDAR_2 <-> NMDAR k_C20, k_0C2",
+    "NMDAR_2 <-> NMDAR_D k_C2D, k_DC2",
+    "NMDAR_0B + glu@OUT <-> NMDAR_1B k_C0C1, k_C1C0",
+    "NMDAR_1B + glu@OUT <-> NMDAR_2B k_C1C2, k_C2C1",
+    "NMDAR_2B <-> NMDAR_B k_C20b, k_0C2b",
+    "NMDAR_2B <-> NMDAR_DB k_C2D, k_DC2"
+  ]
+}

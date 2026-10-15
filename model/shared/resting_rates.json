@@ -1,0 +1,16 @@
+{
+  "V_CLAMP_mV": -67.0,
+  "MG_ECS_mM": 1.0,
+  "k_VSCC_1_forward": 2066.67391179002,
+  "k_VSCC_2_forward": 2726.58356408581,
+  "k_VSCC_3_forward": 2614.62902222498,
+  "k_VSCC_4_forward": 2782.08096797592,
+  "k_VSCC_1_reverse": 22519.6629881921,
+  "k_VSCC_2_reverse": 61923.6476827403,
+  "k_VSCC_3_reverse": 54735.8721958245,
+  "k_VSCC_4_reverse": 45899.4549295609,
+  "k_VSCC_Ca": 2625195.96325191,
+  "k_NMDAR_block": 31740.869665975,
+  "k_NMDAR_unblock": 5052.62106921663,
+  "k_NMDAR_Ca": 983037.67922757
+}

@@ -1,0 +1,1 @@
+../../shared/geometry/Mushroom_transparent.py

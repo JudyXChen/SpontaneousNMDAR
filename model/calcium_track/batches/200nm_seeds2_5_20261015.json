@@ -1,0 +1,15 @@
+{
+  "inputs": "model/calcium_track/snapshots/evoked_200nm_20261015_seeds2_5",
+  "outputs": "results/calcium_track/evoked_200nm_35ms_seeds2_5_20261015",
+  "seeds": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "seed1": "results/calcium_track/evoked_200nm_35ms_seed1_20261015_002",
+  "workers": 1,
+  "condition": "condition_200nm.json",
+  "duration_s": 0.035,
+  "notes": "Only the random seed changes. No kinetics, stimulus, geometry or output cadence changes. Caffeinate exits with the batch."
+}

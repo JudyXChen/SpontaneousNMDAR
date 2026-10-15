@@ -1,0 +1,10 @@
+{
+  "nmda": {
+    "sNMDAR": "rest"
+  },
+  "vgcc": {
+    "sVGCC": "rest"
+  },
+  "rest_voltage_mV": -67,
+  "magnesium_mM": 1
+}
