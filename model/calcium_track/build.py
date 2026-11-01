@@ -6,10 +6,15 @@ import math
 from pathlib import Path
 import re
 import shutil
-from calcium_labels import expand_background
-from geometry_checks import check_placement
+import sys
 
 ROOT = Path(__file__).resolve().parent
+CHEMISTRY = ROOT / 'chemistry'
+ANALYSIS = ROOT / 'analysis'
+DEFAULT_CONDITION = ROOT / 'conditions/2_cluster_100nm.json'
+sys.path.insert(0, str(CHEMISTRY))
+from calcium_labels import expand_background
+from geometry_checks import check_placement
 
 
 def validate(config):
@@ -41,8 +46,8 @@ def validate(config):
 
 
 def render(config):
-    text = expand_background((ROOT / 'background_no_sa.bngl').read_text())
-    kinetics = json.loads((ROOT / 'nmda_kinetics.json').read_text())
+    text = expand_background((CHEMISTRY / 'background_no_sa.bngl').read_text())
+    kinetics = json.loads((CHEMISTRY / 'nmda_kinetics.json').read_text())
     molecules, rules = [], []
     for population in config['channel_protocol']['nmda']:
         molecules.extend(s.replace('NMDAR', population) for s in kinetics['states'])
@@ -57,11 +62,12 @@ def render(config):
 
 
 def materialize(destination, smoke=False, condition_path=None):
-    config = json.loads((Path(condition_path) if condition_path else ROOT / 'condition.json').read_text())
+    config = json.loads((Path(condition_path) if condition_path else DEFAULT_CONDITION).read_text())
     if smoke:
         config['production_duration_s'] = config['duration_s']
-        config['duration_s'] = 0.001
-        config['smoke_note'] = '1 ms startup/chemistry test; not a complete evoked response.'
+        release = max(c['release_time_s'] for c in config['clusters'])
+        config['duration_s'] = round(release + 0.001, 9)
+        config['smoke_note'] = 'Baseline plus 1 ms startup/chemistry test; not a complete response.'
     validate(config)
     placement = check_placement(config, ROOT / 'geometry')
     destination = Path(destination).resolve()
@@ -71,8 +77,13 @@ def materialize(destination, smoke=False, condition_path=None):
     for path in (ROOT / 'runtime').glob('*.py'):
         shutil.copy2(path, destination / path.name)
     shutil.copytree(ROOT / 'geometry', destination / 'geometry', ignore=shutil.ignore_patterns('__pycache__'))
-    for name in ('calcium_labels.py', 'geometry_checks.py', 'paths.py', 'batch.py', 'summarize_batch.py', 'analyze.py', 'audit.py', 'run.py', 'export_clean_viz.py', 'evoked_rates.json', 'resting_rates.json', 'nmda_kinetics.json', 'diffusion.json', 'provenance.json'):
+    for name in ('geometry_checks.py', 'paths.py', 'batch.py', 'run.py'):
         shutil.copy2(ROOT / name, destination / name)
+    for name in ('calcium_labels.py', 'evoked_rates.json', 'resting_rates.json', 'nmda_kinetics.json', 'diffusion.json'):
+        shutil.copy2(CHEMISTRY / name, destination / name)
+    for path in ANALYSIS.glob('*.py'):
+        if path.name != 'compare_spatial.py' and path.name != 'plot.py':
+            shutil.copy2(path, destination / path.name)
     (destination / 'condition.json').write_text(json.dumps(config, indent=2) + '\n')
     (destination / 'placement.json').write_text(json.dumps(placement, indent=2) + '\n')
     (destination / 'model.bngl').write_text(render(config))
@@ -86,6 +97,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('destination', type=Path)
     parser.add_argument('--smoke', action='store_true')
-    parser.add_argument('--condition', type=Path, help='Alternate condition JSON; default remains the 100 nm model.')
+    parser.add_argument('--condition', type=Path, help='Condition JSON from conditions/; default is the 100 nm model.')
     args = parser.parse_args()
     print(materialize(args.destination, args.smoke, args.condition))

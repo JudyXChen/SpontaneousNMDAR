@@ -21,7 +21,7 @@ def suite_leaves(suite):
     calibrated = MODEL_ROOT / 'calcium_total'
     if suite == 'spont_1_vs_2':
         return [calibrated / 'spont/1_cluster_10_NMDAR', calibrated / 'spont/2_cluster_100nm']
-    family = 'mixed' if suite == 'mixed_distance' else 'spont'
+    family = 'spont'
     return [calibrated / family / (f'2_cluster_{d}nm' + ('_3_NMDAR_each' if n == 3 else ''))
             for n in (10, 3) for d in (50, 100, 200)]
 
@@ -35,7 +35,7 @@ def write_json(path, value):
 def main(condition=None):
     parser = argparse.ArgumentParser(description=__doc__)
     if condition is None:
-        parser.add_argument('--suite', required=True, choices=('spont_1_vs_2', 'mixed_distance', 'spont_distance'))
+        parser.add_argument('--suite', required=True, choices=('spont_1_vs_2', 'spont_distance'))
     parser.add_argument('--seeds', nargs='+', type=int, help='default: seed 1 for experiment 2; seeds 1-4 for sweeps')
     parser.add_argument('--jobs', type=int, default=3, help='concurrent simulations (default: 3)')
     parser.add_argument('--smoke', action='store_true', help='compress timeline to 0.1 ms baseline + 0.1 ms response')

@@ -1,8 +1,0 @@
-{
-  "evoked_source_commit": "bbc2fbfd11b721e4e4b6d87a713f2bb9194d482d",
-  "spontaneous_source_commit": "b6bf4976c6e5a432ec2ce305961fc1e91a2c0a53",
-  "geometry_source": "model/NMDAR_calibrated/evoked/2_cluster_100nm/geometry",
-  "background_source": "model/NMDAR_calibrated/evoked/2_cluster_100nm/model.bngl",
-  "resting_rates_source": "spontaneous:model/NMDAR_calibrated/spont/1_cluster_10_NMDAR/model.bngl",
-  "note": "Existing evoked source and prior outputs are not modified. New models use NMDAR-first release and a common 10+35 ms timeline."
-}

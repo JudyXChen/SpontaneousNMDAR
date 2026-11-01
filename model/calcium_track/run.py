@@ -9,6 +9,9 @@ import sys
 import time
 from paths import inputs_for, verify_inputs
 
+HERE = Path(__file__).resolve().parent
+ANALYSIS = HERE / 'analysis' if (HERE / 'analysis').is_dir() else HERE
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -48,13 +51,13 @@ def main():
         status['state'] = 'analyzing'
         save()
         with (run / 'analysis.log').open('w') as log:
-            subprocess.run([sys.executable, '-B', str(Path(__file__).with_name('analyze.py')),
+            subprocess.run([sys.executable, '-B', str(ANALYSIS / 'analyze.py'),
                             str(run), '--seed', str(args.seed)], stdout=log,
                            stderr=subprocess.STDOUT, check=True)
-            subprocess.run([sys.executable, '-B', str(Path(__file__).with_name('audit.py')),
+            subprocess.run([sys.executable, '-B', str(ANALYSIS / 'audit.py'),
                             str(run), '--output', str(run / 'audit.json')], stdout=log,
                            stderr=subprocess.STDOUT, check=True)
-            subprocess.run([sys.executable, '-B', str(Path(__file__).with_name('export_clean_viz.py')),
+            subprocess.run([sys.executable, '-B', str(ANALYSIS / 'export_clean_viz.py'),
                             str(run), '--seed', str(args.seed)], stdout=log,
                            stderr=subprocess.STDOUT, check=True)
         status['state'] = 'complete'

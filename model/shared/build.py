@@ -110,7 +110,7 @@ def materialize(config, destination):
         shutil.copy2(path, destination / path.name)
     shutil.copytree(COMMON / 'geometry', destination / 'geometry',
                     ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-    for name in ('evoked_rates.json', 'resting_rates.json', 'nmda_kinetics.json', 'provenance.json'):
+    for name in ('evoked_rates.json', 'resting_rates.json', 'nmda_kinetics.json'):
         shutil.copy2(COMMON / name, destination / name)
     (destination / 'condition.json').write_text(json.dumps(config, indent=2) + '\n')
     (destination / 'model.bngl').write_text(render_bngl(config))

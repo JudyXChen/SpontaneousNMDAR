@@ -1,11 +1,10 @@
-/*
-!/.gitignore
-!/model/
-*.sh
+/archive/
+/dev/
 
+/results/*
+!/results/README.md
 model/**/snapshots/
 
-# Generated simulation output
 react_data/
 viz_data/
 logs/
@@ -16,7 +15,8 @@ Scene.data_model*.json
 data_layout.json*
 start_time.txt
 
-# Python and macOS caches
+# Python, editor and macOS caches
 __pycache__/
 *.py[cod]
 .DS_Store
+.vscode/

@@ -1,4 +1,4 @@
-"""Run the approved four seeds sequentially and summarize recorded outputs."""
+"""Run a batch plan's seeds sequentially and summarize recorded outputs."""
 import argparse
 from datetime import datetime, timezone
 import json
