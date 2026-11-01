@@ -1,0 +1,54 @@
+{
+  "distance_nm": 400,
+  "clusters": [
+    {
+      "walls": [
+        1267,
+        1289,
+        1305
+      ],
+      "receptors": 10,
+      "population": "NMDAR_A",
+      "glutamate": 250,
+      "release_time_s": 0.01,
+      "glutamate_z_um": 1.684259
+    },
+    {
+      "walls": [
+        1279,
+        1298,
+        1308
+      ],
+      "receptors": 10,
+      "population": "NMDAR_B",
+      "glutamate": 250,
+      "release_time_s": 0.01,
+      "glutamate_z_um": 1.684259
+    }
+  ],
+  "time_step_s": 1e-07,
+  "duration_s": 0.045,
+  "waveform_start_s": 0.01,
+  "vgcc_populations": {
+    "VGCC": 1.0
+  },
+  "channel_protocol": {
+    "rest_voltage_mV": -67,
+    "magnesium_mM": 1,
+    "nmda": {
+      "NMDAR_A": "rest",
+      "NMDAR_B": "rest"
+    },
+    "vgcc": {
+      "VGCC": "rest"
+    }
+  },
+  "calcium_sources": {
+    "NMDAR_A": "Ca_A",
+    "NMDAR_B": "Ca_B"
+  },
+  "viz_every_n_timesteps": 100,
+  "voxel_size_um": 0.05,
+  "spine_apparatus": false,
+  "glutamate_z_um": 1.684259
+}

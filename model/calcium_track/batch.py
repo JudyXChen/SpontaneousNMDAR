@@ -45,8 +45,9 @@ def main():
                 save()
             status['state'] = 'summarizing'
             save()
-            subprocess.run([sys.executable, '-B', str(inputs / 'summarize_batch.py'), str(output),
-                '--seed1', str(repo / plan['seed1'])], stdout=log, stderr=subprocess.STDOUT, check=True)
+            extra = ['--seed1', str(repo / plan['seed1'])] if plan.get('seed1') else []
+            subprocess.run([sys.executable, '-B', str(inputs / 'summarize_batch.py'), str(output), *extra],
+                           stdout=log, stderr=subprocess.STDOUT, check=True)
             status['state'] = 'complete' if all(r['state'] == 'complete' for r in status['seeds'].values()) else 'completed_with_failures'
     except BaseException as error:
         status.update(state='failed', error=repr(error))

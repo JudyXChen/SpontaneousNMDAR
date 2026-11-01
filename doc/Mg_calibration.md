@@ -274,7 +274,7 @@ unblock voltage scale = 81.78933360630565 mV
 ## 6. How the result was checked in the repository
 
 The stored implementation is
-`scripts/nmdar/compare_conductance.py`. It:
+`scripts/plot_conductance.py`. It:
 
 1. defines the calibrated rates;
 2. constructs the full ten-state continuous-time Markov generator;

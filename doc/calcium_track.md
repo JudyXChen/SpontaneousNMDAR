@@ -10,8 +10,9 @@ not the glutamate release site: glutamate is shared and can reach both clusters.
 | Setting | Value |
 |---|---|
 | NMDARs | 10 + 10, immobile |
-| Glutamate | Set per site in the condition file; released at t = 10 ms |
-| Voltage | Same for both clusters and VGCCs: `evoked` waveform or `rest` (−67 mV, 1 mM Mg²⁺) |
+| Separation | 101.5, 200.5 or 405.2 nm, mirrored around the PSD center |
+| Glutamate | Per site; default 250, released at t = 10 ms. `build.py --glutamate 1000 0` releases 1000 at A only |
+| Voltage | Clamped: −67 mV, 1 mM Mg²⁺, so all channel rates are constant |
 | Duration | 45 ms: 10 ms baseline + 35 ms response |
 | Timestep | 0.1 µs; counts every 10 µs |
 | Geometry | Spine and attached dendrite; spine apparatus and ER chemistry removed |
@@ -44,8 +45,11 @@ not concentrations, because boundary voxels are only partly cytosol.
 ## Plots
 
 ```sh
+python3 -B scripts/plot_calcium_voxels.py NEW_OUTPUT RUN_1 RUN_2 ...
 python3 -B model/calcium_track/analysis/plot.py RUN_DIRECTORY
 python3 -B model/calcium_track/analysis/compare_spatial.py RUN_A RUN_B NEW_OUTPUT
 ```
 
-Use the CellBlender Python, or any Python with NumPy and Matplotlib.
+`plot_calcium_voxels.py` averages seeds and shows where each label's free ions spend time,
+split by time since their own cluster conducted. Use the CellBlender Python, or any
+Python with NumPy and Matplotlib.

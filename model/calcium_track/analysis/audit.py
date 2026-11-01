@@ -43,6 +43,9 @@ def audit(run, initialized_only=False):
     reactions = {r['rxn_name']:r for r in dm['define_reactions']['reaction_list']}
     releases = {r['name']:r for r in dm['release_sites']['release_site_list']}
     for index,site in enumerate(placement['sites'],1):
+        if config['clusters'][index-1]['glutamate'] == 0:
+            assert 'glutamate_cluster_'+str(index) not in releases
+            continue
         release = releases['glutamate_cluster_'+str(index)]
         xyz = [float(release['location_'+axis]) for axis in 'xyz']
         assert np.allclose(xyz,site['glutamate_location_um'],atol=1e-12,rtol=0)

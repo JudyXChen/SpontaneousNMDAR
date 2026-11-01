@@ -26,7 +26,7 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.plot_style import apply_style, figure, shade, save
 MODEL = ROOT / 'model/calcium_total/evoked/1_cluster_10_NMDAR'

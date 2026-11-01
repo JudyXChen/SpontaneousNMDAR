@@ -35,11 +35,12 @@ def validate(config):
     assert len(set(modes)) == 1 and modes[0] in ('evoked', 'rest')
     assert 0 <= config['waveform_start_s'] < config['duration_s']
     assert len(config['clusters']) == 2
+    assert any(c['glutamate'] > 0 for c in config['clusters'])
     seen = set()
     for tag, c in zip('AB', config['clusters']):
         assert c['population'] == 'NMDAR_' + tag
         assert isinstance(c['receptors'], int) and c['receptors'] > 0
-        assert isinstance(c['glutamate'], int) and c['glutamate'] > 0
+        assert isinstance(c['glutamate'], int) and c['glutamate'] >= 0
         assert c['walls'] and not seen.intersection(c['walls'])
         seen.update(c['walls'])
         assert 0 <= c['release_time_s'] < config['duration_s']
@@ -61,8 +62,11 @@ def render(config):
     return text.replace('end reaction rules', '\n'.join('    ' + s for s in rules) + '\nend reaction rules')
 
 
-def materialize(destination, smoke=False, condition_path=None):
+def materialize(destination, smoke=False, condition_path=None, glutamate=None):
     config = json.loads((Path(condition_path) if condition_path else DEFAULT_CONDITION).read_text())
+    if glutamate is not None:
+        for cluster, count in zip(config['clusters'], glutamate):
+            cluster['glutamate'] = count
     if smoke:
         config['production_duration_s'] = config['duration_s']
         release = max(c['release_time_s'] for c in config['clusters'])
@@ -98,5 +102,7 @@ if __name__ == '__main__':
     parser.add_argument('destination', type=Path)
     parser.add_argument('--smoke', action='store_true')
     parser.add_argument('--condition', type=Path, help='Condition JSON from conditions/; default is the 100 nm model.')
+    parser.add_argument('--glutamate', type=int, nargs=2, metavar=('A', 'B'),
+                        help='Molecules released at each site, e.g. 1000 0 for A only.')
     args = parser.parse_args()
-    print(materialize(args.destination, args.smoke, args.condition))
+    print(materialize(args.destination, args.smoke, args.condition, args.glutamate))

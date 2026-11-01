@@ -16,9 +16,9 @@ sys.path.insert(0, str(repository() / 'scripts'))
 import plot_style as style
 
 
-def summarize(batch, seed1):
+def summarize(batch, seed1=None):
     records, traces, failures = [], {}, []
-    runs = [seed1] + sorted(p for p in batch.glob('seed_*') if p.is_dir())
+    runs = ([seed1] if seed1 else []) + sorted(p for p in batch.glob('seed_*') if p.is_dir())
     for run in runs:
         status = json.loads((run / 'status.json').read_text())
         seed = status['seed']
@@ -55,7 +55,7 @@ def summarize(batch, seed1):
         rows = [r for r in records if r['source'] == tag]
         ax.plot([r['seed'] for r in rows], [r['entry_ions'] for r in rows],
                 'o-', color=colors[tag], label='Ca_' + tag)
-    ax.set(xlabel='Random seed', ylabel='Calcium entry over 35 ms (ions)', ylim=(0,None))
+    ax.set(xlabel='Random seed', ylabel='Cumulative calcium entry (ions)', ylim=(0,None))
     ax.set_xticks(sorted(traces))
     style.save(fig, output / 'calcium_entry_by_seed'); plt.close(fig)
     seed_colors = ['#234E70','#E69F00','#009E73','#9467BD','#666666']
@@ -64,7 +64,7 @@ def summarize(batch, seed1):
         for (seed, data), color in zip(sorted(traces.items()), seed_colors):
             values = data[tag]['free']
             ax.plot(values[:,0]*1000, values[:,1], color=color, label=f'Seed {seed}')
-        ax.set(xlabel='Time (ms)', ylabel=f'Free Ca_{tag} ions', xlim=(0,35), ylim=(0,None))
+        ax.set(xlabel='Time (ms)', ylabel=f'Free Ca_{tag} ions', xlim=(0,values[-1,0]*1000), ylim=(0,None))
         style.save(fig, output / f'free_Ca_{tag}_by_seed'); plt.close(fig)
     return report
 
@@ -72,6 +72,6 @@ def summarize(batch, seed1):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('batch', type=Path)
-    parser.add_argument('--seed1', type=Path, required=True)
+    parser.add_argument('--seed1', type=Path, help='Optional separate seed-1 run to include.')
     args = parser.parse_args()
-    print(json.dumps(summarize(args.batch.resolve(), args.seed1.resolve()), indent=2))
+    print(json.dumps(summarize(args.batch.resolve(), args.seed1.resolve() if args.seed1 else None), indent=2))

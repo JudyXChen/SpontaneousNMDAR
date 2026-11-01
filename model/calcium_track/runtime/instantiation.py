@@ -121,7 +121,8 @@ GLUTAMATE_sites = [m.ReleaseSite(
     release_time=cluster['release_time_s'], shape=m.Shape.SPHERICAL,
     location=(center[0], center[1], cluster.get('glutamate_z_um', GLU_Z)), site_diameter=0,
     number_to_release=cluster['glutamate'],
-) for i, (cluster, center) in enumerate(zip(CONFIG['clusters'], CLUSTER_CENTERS), 1)]
+) for i, (cluster, center) in enumerate(zip(CONFIG['clusters'], CLUSTER_CENTERS), 1)
+    if cluster['glutamate'] > 0]
 
 
 

@@ -52,7 +52,7 @@ def analyze(run, seed=1):
         assert np.array_equal(flux, inventory + sinks), f'Ca_{tag} source balance'
     assert np.array_equal(get('NMDAR_Ca_flux'), get('NMDAR_A_Ca_flux') + get('NMDAR_B_Ca_flux'))
     assert np.array_equal(get('Ca_free_total'), get('Ca2') + get('Ca_A') + get('Ca_B'))
-    release_sample = round(config['clusters'][0]['release_time_s'] / dt) // 100
+    release_sample = round(min(c['release_time_s'] for c in config['clusters'] if c['glutamate'] > 0) / dt) // 100
     assert get('glu')[release_sample] == sum(c['glutamate'] for c in config['clusters'])
     assert np.all(get('glu')[:release_sample] == 0), 'glutamate present before release'
     for name in ('Bm', 'Bf', 'PMCA', 'NCX', 'PLC', 'VGCC'):
