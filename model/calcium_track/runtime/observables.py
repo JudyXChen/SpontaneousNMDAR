@@ -4,8 +4,9 @@ import operator
 import mcell as m
 from parameters import SEED
 from subsystem import subsystem, NMDAR_FLUX_RULES, VGCC_FLUX_RULES
-from geometry import Mushroom_transparent, Mushroom_dendrite
-from calcium_labels import CARRIERS, labeled
+from pathlib import Path
+from geometry import Mushroom_transparent, Mushroom_dendrite, SA
+from calcium_labels import CARRIERS, er_handoffs, labeled
 from channel_counts import make_channel_counts
 from channels import NMDAR_SUFFIXES
 from condition import CONFIG
@@ -45,6 +46,21 @@ for tag, free in [('background', 'Ca2'), ('A', 'Ca_A'), ('B', 'Ca_B')]:
     for sink in ('Ca2Null', 'rxn_PMCA', 'rxn_NCX'):
         name = sink if tag == 'background' else sink + '_' + tag
         count(name + '_World', m.CountTerm(reaction_rule=subsystem.find_reaction_rule(name)))
+# Where each label ends at the ER; RyR binding by label is the available trigger signal.
+bngl_text = (Path(__file__).resolve().parent / 'model.bngl').read_text()
+for tag in 'AB':
+    groups = er_handoffs(bngl_text, tag)
+    for partner, rules in groups.items():
+        count(f'Ca_{tag}_to_{partner}_World', summed([
+            m.CountTerm(reaction_rule=subsystem.find_reaction_rule(name)) for name in rules]))
+count('Ca2_ER_SA', species('Ca2_ER', SA))
+count('RyR_O_World', species('RyR_O'))
+count('RyR_total_World', summed([species(s) for s in ('RyR_C', 'RyR_O', 'RyR_CI', 'RyR_OI')]))
+count('IP3R_open_World', species('IP3R(s1~110,s2~110,s3~110)'))
+count('IP3R_total_World', species('IP3R'))
+count('SERCA_total_World', summed([species(s) for s in ('SERCAx', 'SERCAx1', 'SERCAx2', 'SERCAy', 'SERCAy1', 'SERCAy2')]))
+for name in ('rxn_RyR_flux_f', 'rxn_RyR_flux_r', 'rxn_IP3R_flux', 'rxn_SERCA_leak'):
+    count(name + '_World', m.CountTerm(reaction_rule=subsystem.find_reaction_rule(name)))
 count('Ca_free_total_World', summed([species(c) for c in ('Ca2', 'Ca_A', 'Ca_B')]))
 for name, expression in [('Bm_total', [species(s) for s in ('Bm','CaBm','CaBm_A','CaBm_B')]),
                          ('Bf_total', [species(s) for s in ('Bf','CaBf','CaBf_A','CaBf_B')]),

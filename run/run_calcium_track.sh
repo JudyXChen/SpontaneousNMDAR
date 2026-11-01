@@ -1,35 +1,36 @@
 #!/usr/bin/env bash
-# Scope the sleep assertion to this job, including its postprocessing.
+# Start a calcium_track run or batch in a detached tmux session.
+# Elsewhere than this Mac, set MCELL_PATH and PYTHON first.
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 source_dir="$repo/model/calcium_track"
 cd "$repo"
-resources=/Applications/Blender-4.4.3-CellBlender/Blender.app/Contents/Resources/4.4
-mcell_path="$resources/extensions/system/cellblender/extensions/mcell"
-python_bin="$resources/python/bin/python3.11"
-if [[ "${1:-}" == --batch && $# -eq 3 ]]; then
-    plan="$2"
-    session="$3"
+source "$repo/scripts/runtime.sh"
+[[ -n "${MCELL_PATH:-}" && -f "$MCELL_PATH/lib/mcell.so" ]] || { echo 'Set MCELL_PATH to the folder containing lib/mcell.so' >&2; exit 1; }
+command -v tmux >/dev/null || { echo 'tmux is required.' >&2; exit 1; }
+keep_awake=()
+[[ -x /usr/bin/caffeinate ]] && keep_awake=(/usr/bin/caffeinate -i)
+cache="${TMPDIR:-/tmp}/calcium-track-cache"
+mkdir -p "$cache"
+if [[ "${1:-}" == --batch && ( $# -eq 3 || $# -eq 4 ) ]]; then
+    plan="$2"; session="$3"; workers="${4:-}"
     [[ -f "$plan" ]]
-    if tmux has-session -t "$session" 2>/dev/null; then
+    if tmux has-session -t "=$session" 2>/dev/null; then
         echo "Session already exists: $session" >&2
         exit 1
     fi
-    batch_script="$source_dir/batch.py"
-    printf -v launch_command 'cd %q && exec /usr/bin/caffeinate -i /usr/bin/env MCELL_PATH=%q MPLCONFIGDIR=%q XDG_CACHE_HOME=%q %q -B %q %q' \
-        "$repo" "$mcell_path" /private/tmp/calcium-mpl /private/tmp/calcium-cache "$python_bin" "$batch_script" "$plan"
+    command=("$PYTHON" -B "$source_dir/batch.py" "$plan")
+    [[ -n "$workers" ]] && command+=(--workers "$workers")
 elif [[ $# -eq 3 || $# -eq 4 ]]; then
-    inputs="$1"
-    output="$2"
-    session="$3"
-    seed="${4:-1}"
+    inputs="$1"; output="$2"; session="$3"; seed="${4:-1}"
     [[ -f "$inputs/model.py" && ! -e "$output" ]]
-    printf -v launch_command 'cd %q && exec /usr/bin/caffeinate -i /usr/bin/env MCELL_PATH=%q %q -B %q %q --inputs %q --seed %q' \
-        "$repo" "$mcell_path" "$python_bin" "$source_dir/run.py" "$output" "$inputs" "$seed"
+    command=("$PYTHON" -B "$source_dir/run.py" "$output" --inputs "$inputs" --seed "$seed")
 else
     echo 'usage: run_calcium_track.sh INPUT_DIRECTORY OUTPUT_DIRECTORY SESSION [SEED]' >&2
-    echo '   or: run_calcium_track.sh --batch PLAN SESSION' >&2
+    echo '   or: run_calcium_track.sh --batch PLAN SESSION [WORKERS]' >&2
     exit 2
 fi
-tmux new-session -d -s "$session" "$launch_command"
-echo "Started $session under job-scoped caffeinate; no system power settings changed."
+printf -v launch 'cd %q && exec' "$repo"
+printf -v rest ' %q' "${keep_awake[@]+"${keep_awake[@]}"}" /usr/bin/env "MCELL_PATH=$MCELL_PATH" "MPLCONFIGDIR=$cache" "XDG_CACHE_HOME=$cache" "${command[@]}"
+tmux new-session -d -s "$session" "$launch$rest"
+echo "Started tmux session $session"

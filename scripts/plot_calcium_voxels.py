@@ -11,8 +11,9 @@ Each label is split by time since its own cluster last conducted. In each window
                look more widespread. -1 is all Ca_B (green), +1 is all Ca_A (pink),
                0 is an equal share. Voxels with few sampled ions are gray.
 
-Maps are 2D: side view (separation axis against z) through a slab around the
-clusters, and top view (x, y) in a band just under the PSD.
+Maps are 2D: side view (the axis the clusters are separated along, against z) through
+a slab around the clusters, and top view (x, y) in a band just under the PSD. The ER
+outline is drawn when the run has one.
 
 Usage: plot_calcium_voxels.py OUTPUT_DIRECTORY RUN [RUN ...]
 """
@@ -87,7 +88,7 @@ def window_index(since):
     return tuple(i for i, (_, low, high) in enumerate(WINDOWS) if i and low < since <= high)
 
 
-def load_seed(run, seed, slab_center_x, slab_half_width):
+def load_seed(run, seed, along, slab_center, slab_half_width):
     """Voxel counts per window for one seed, as {(label, window, view): {(u, z): count}}."""
     since = {tag: time_since_conducting(run, seed, tag) for tag in 'AB'}
     frames = {tag: np.zeros(len(WINDOWS) + 1) for tag in 'AB'}
@@ -107,11 +108,12 @@ def load_seed(run, seed, slab_center_x, slab_half_width):
             frame = int(row['iteration']) // 100
             windows = window_index(since[tag][frame]) + (len(WINDOWS),)
             size = 0.05
-            in_slab = abs((ix + .5) * size - slab_center_x) <= slab_half_width
+            index = (ix, iy)
+            in_slab = abs((index[1 - along] + .5) * size - slab_center) <= slab_half_width
             in_band = BAND_BELOW_PSD_UM[0] <= (iz + .5) * size < BAND_BELOW_PSD_UM[1]
             for window in windows:
                 if in_slab:
-                    key = (tag, window, 'side', iy, iz)
+                    key = (tag, window, 'side', index[along], iz)
                     counts[key] = counts.get(key, 0) + count
                 if in_band:
                     key = (tag, window, 'top', ix, iy)
@@ -119,7 +121,7 @@ def load_seed(run, seed, slab_center_x, slab_half_width):
     return counts, frames
 
 
-def accumulate(runs, slab_center_x):
+def accumulate(runs, along, slab_center):
     """Per-frame occupancy averaged across seeds, and raw sampled ions."""
     occupancy, sampled = {}, {}
     used = {(tag, w): 0 for tag in 'AB' for w in range(len(WINDOWS) + 1)}
@@ -127,7 +129,7 @@ def accumulate(runs, slab_center_x):
     for run in runs:
         seed = json.loads((run / 'status.json').read_text())['seed']
         print(f'Reading seed {seed}', flush=True)
-        counts, frames = load_seed(run, seed, slab_center_x, SLAB_HALF_WIDTH_UM)
+        counts, frames = load_seed(run, seed, along, slab_center, SLAB_HALF_WIDTH_UM)
         for tag in 'AB':
             for window in range(number + 1):
                 # A seed where a cluster never opened has no frames in its time windows.
@@ -184,26 +186,30 @@ def main():
     centers = np.asarray(audit['region_centers_um'])
     A, B = centers
     separation = B[:2] - A[:2]
-    if abs(separation[1]) < abs(separation[0]):
-        raise ValueError('Side view assumes the clusters are separated mainly along y.')
-    tilt = float(np.degrees(np.arctan2(abs(separation[0]), abs(separation[1]))))
-    slab_x = float((A[0] + B[0]) / 2)
-    mid_y = float((A[1] + B[1]) / 2)
+    along = int(abs(separation[1]) > abs(separation[0]))  # 0 = x, 1 = y
+    axis_name = 'xy'[along]
+    tilt = float(np.degrees(np.arctan2(abs(separation[1 - along]), abs(separation[along]))))
+    slab_center = float((A[1 - along] + B[1 - along]) / 2)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    occupancy, sampled, used = accumulate(runs, slab_x)
+    occupancy, sampled, used = accumulate(runs, along, slab_center)
     n = len(runs)
     size = 0.05
     vertices, walls = read_mesh(ROOT / 'model/shared/geometry/Mushroom_dendrite.py', 'Mushroom_dendrite')
-    side_mesh = mesh_section(vertices, walls, 0, slab_x)
-    top_mesh = mesh_section(vertices, walls, 2, 1.55)
+    side_mesh = [mesh_section(vertices, walls, 1 - along, slab_center)]
+    top_mesh = [mesh_section(vertices, walls, 2, 1.55)]
+    inputs = runs[0] / json.loads((runs[0] / 'input_reference.json').read_text())['input_directory']
+    if (inputs / 'geometry/SA.py').exists():
+        er_vertices, er_walls = read_mesh(inputs / 'geometry/SA.py', 'SA')
+        side_mesh.append(mesh_section(er_vertices, er_walls, 1 - along, slab_center))
+        top_mesh.append(mesh_section(er_vertices, er_walls, 2, 1.5))
     views = {
-        'side': dict(ranges=((-11, 10), (20, 35)), xlabel='y (µm)', ylabel='z (µm)'),
+        'side': dict(ranges=((-11, 10), (20, 35)), xlabel=axis_name + ' (µm)', ylabel='z (µm)'),
         'top': dict(ranges=((-11, 10), (-11, 10)), xlabel='x (µm)', ylabel='y (µm)'),
     }
     style.apply_style()
     names = [w[0] for w in WINDOWS] + ['all_frames']
-    summary = dict(seeds=n, voxel_um=size, tilt_of_separation_from_y_deg=tilt, slab_center_x_um=slab_x,
+    summary = dict(seeds=n, voxel_um=size, side_axis=axis_name, tilt_of_separation_from_axis_deg=tilt, slab_center_um=slab_center,
                    slab_half_width_um=SLAB_HALF_WIDTH_UM, top_band_z_um=BAND_BELOW_PSD_UM,
                    min_sampled_ions=MIN_SAMPLED_IONS, windows={})
     arrays = {}
@@ -234,12 +240,13 @@ def main():
                 current.set_bad(MASK)
                 image = ax.imshow(np.ma.masked_invalid(data), origin='lower', extent=extent, cmap=current,
                                   norm=norm, interpolation='nearest', aspect='equal')
-                mesh = side_mesh[:, :, 1:3] if view == 'side' else top_mesh[:, :, :2]
-                for segment in mesh:
-                    ax.plot(*segment.T, color='#333333', linewidth=0.5)
+                for mesh in (side_mesh if view == 'side' else top_mesh):
+                    for segment in mesh:
+                        points = segment[:, [along, 2]] if view == 'side' else segment[:, :2]
+                        ax.plot(*points.T, color='#333333', linewidth=0.5)
                 ax.set(xlabel=spec['xlabel'], ylabel=spec['ylabel'], xlim=extent[:2], ylim=extent[2:])
                 for center, color in ((A, PINK), (B, GREEN)):
-                    point = (center[1], center[2]) if view == 'side' else (center[0], center[1])
+                    point = (center[along], center[2]) if view == 'side' else (center[0], center[1])
                     ax.scatter(*point, marker='x', s=30, color='black', linewidths=1.8, zorder=4)
                     ax.scatter(*point, marker='x', s=22, color=color, linewidths=1.0, zorder=5)
                 return fig, ax, image
@@ -257,7 +264,7 @@ def main():
                   {'Ca_B': -1, 'equal': 0, 'Ca_A': 1})
     handles = [Line2D([], [], linestyle='', marker='x', color=PINK, label='Cluster A'),
                Line2D([], [], linestyle='', marker='x', color=GREEN, label='Cluster B'),
-               Line2D([], [], color='#333333', linewidth=0.8, label='Membrane')]
+               Line2D([], [], color='#333333', linewidth=0.8, label='Membrane, ER')]
     style.save_legend(handles, output / 'legend.png', figsize=(3.2, 0.4), ncol=3)
     np.savez_compressed(output / 'voxel_maps.npz', **arrays)
     (output / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')

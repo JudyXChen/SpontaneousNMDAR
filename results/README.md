@@ -15,7 +15,8 @@ results/
   calcium_track/
     evoked/CASE/seed_NNNNN/       counts, frames, voxels, validation, audit
     evoked/CASE/compare_seeds/    across-seed summary
-    evoked/compare_*/             across-distance comparison
+    evoked/compare_*/             across-distance comparison (older runs without ER)
+    clamped/TEST/CASE/seed_NNNNN/ clamped runs with ER
 ```
 
 Each run's `input_reference.json` points to the frozen inputs that produced it.

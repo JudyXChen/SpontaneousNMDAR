@@ -1,0 +1,54 @@
+{
+  "distance_nm": 200,
+  "clusters": [
+    {
+      "walls": [
+        1377,
+        1705,
+        1721
+      ],
+      "receptors": 10,
+      "population": "NMDAR_A",
+      "glutamate": 250,
+      "release_time_s": 0.0,
+      "glutamate_z_um": 1.661198
+    },
+    {
+      "walls": [
+        1384,
+        1712,
+        1719
+      ],
+      "receptors": 10,
+      "population": "NMDAR_B",
+      "glutamate": 250,
+      "release_time_s": 0.0,
+      "glutamate_z_um": 1.660963
+    }
+  ],
+  "time_step_s": 1e-07,
+  "duration_s": 0.035,
+  "waveform_start_s": 0.0,
+  "vgcc_populations": {
+    "VGCC": 1.0
+  },
+  "channel_protocol": {
+    "rest_voltage_mV": -67,
+    "magnesium_mM": 1,
+    "nmda": {
+      "NMDAR_A": "rest",
+      "NMDAR_B": "rest"
+    },
+    "vgcc": {
+      "VGCC": "rest"
+    }
+  },
+  "calcium_sources": {
+    "NMDAR_A": "Ca_A",
+    "NMDAR_B": "Ca_B"
+  },
+  "viz_every_n_timesteps": 100,
+  "voxel_size_um": 0.05,
+  "glutamate_z_um": 1.661198,
+  "immobile_buffer": "cytosol"
+}

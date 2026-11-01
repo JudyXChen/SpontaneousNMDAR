@@ -33,11 +33,11 @@ Each MCell model uses the same small set of files:
 | Path | Contents |
 |---|---|
 | `conditions/` | One JSON per condition: cluster triangles, receptors, glutamate, timing |
-| `chemistry/` | No-apparatus chemistry and the rules that label calcium by source |
+| `chemistry/` | Shared chemistry and the rules that label calcium by source |
 | `runtime/` | Model files; files that differ from `shared/runtime/` are real copies, the rest are links |
-| `geometry/` | Links to the shared meshes, without the spine apparatus |
+| `geometry/` | Links to the shared meshes, including the smooth ER |
 | `build.py` | Combines these into a frozen, self-contained input folder |
-| `run.py`, `batch.py` | Run one seed or a list of seeds, then analyze |
+| `run.py`, `batch.py`, `batches/` | Run one seed or a planned list of seeds, then analyze |
 | `analysis/` | Validation, voxel counts, audits and plots |
 
 Conditions select PSD mesh triangles by index, so realized cluster distances are

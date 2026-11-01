@@ -12,13 +12,18 @@ ROOT = Path(__file__).resolve().parent
 CHEMISTRY = ROOT / 'chemistry'
 ANALYSIS = ROOT / 'analysis'
 DEFAULT_CONDITION = ROOT / 'conditions/2_cluster_100nm.json'
+# Bartol et al. 2015: calibrated immobile calcium-binding protein, in the cytoplasm.
+CYTOSOLIC_BUFFER = (('    Ca2@IN + Bf <-> CaBf k_Ca_Bf_f, k_Ca_Bf_r', '    Ca2 + Bf <-> CaBf k_Ca_Bf_f, k_Ca_Bf_r'),
+                    ('    k_Ca_Bf_f 1e6', '    k_Ca_Bf_f 2.47e8'), ('    k_Ca_Bf_r 2\n', '    k_Ca_Bf_r 524\n'),
+                    ('    Bf_IC 4791', '    Bf_IC 78.7e-6'))
+IMMOBILE_BUFFERS = ('membrane', 'cytosol')
 sys.path.insert(0, str(CHEMISTRY))
 from calcium_labels import expand_background
 from geometry_checks import check_placement
 
 
 def validate(config):
-    assert config['spine_apparatus'] is False
+    assert config['immobile_buffer'] in IMMOBILE_BUFFERS
     assert config['time_step_s'] == 1e-7
     n = config['duration_s'] / config['time_step_s']
     assert n >= 1000 and math.isclose(n / 1000, round(n / 1000))
@@ -47,7 +52,12 @@ def validate(config):
 
 
 def render(config):
-    text = expand_background((CHEMISTRY / 'background_no_sa.bngl').read_text())
+    source = (CHEMISTRY / 'background.bngl').read_text()
+    if config['immobile_buffer'] == 'cytosol':
+        for old, new in CYTOSOLIC_BUFFER:
+            assert source.count(old) == 1, old
+            source = source.replace(old, new)
+    text = expand_background(source)
     kinetics = json.loads((CHEMISTRY / 'nmda_kinetics.json').read_text())
     molecules, rules = [], []
     for population in config['channel_protocol']['nmda']:

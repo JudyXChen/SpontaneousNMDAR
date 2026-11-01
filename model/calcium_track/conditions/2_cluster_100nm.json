@@ -10,7 +10,7 @@
       "receptors": 10,
       "population": "NMDAR_A",
       "glutamate": 250,
-      "release_time_s": 0.01,
+      "release_time_s": 0.0,
       "glutamate_z_um": 1.654983
     },
     {
@@ -22,13 +22,13 @@
       "receptors": 10,
       "population": "NMDAR_B",
       "glutamate": 250,
-      "release_time_s": 0.01,
+      "release_time_s": 0.0,
       "glutamate_z_um": 1.6551
     }
   ],
   "time_step_s": 1e-07,
-  "duration_s": 0.045,
-  "waveform_start_s": 0.01,
+  "duration_s": 0.035,
+  "waveform_start_s": 0.0,
   "vgcc_populations": {
     "VGCC": 1.0
   },
@@ -49,6 +49,6 @@
   },
   "viz_every_n_timesteps": 100,
   "voxel_size_um": 0.05,
-  "spine_apparatus": false,
-  "glutamate_z_um": 1.654983
+  "glutamate_z_um": 1.654983,
+  "immobile_buffer": "membrane"
 }

@@ -46,6 +46,7 @@ def analyze(run, seed=1):
         flux = get('NMDAR_' + tag + '_Ca_flux')
         assert np.all(np.diff(flux) >= 0)
         sinks = sum(get(s + '_' + tag) for s in ('Ca2Null', 'rxn_PMCA', 'rxn_NCX'))
+        sinks = sinks + sum(get(f'Ca_{tag}_to_{partner}') for partner in ('SERCA', 'RyR', 'IP3R'))
         inventory = get('Ca_' + tag + '_inventory')
         assert inventory[0] == 0
         # Any source conversion or uncounted particle loss fails this identity.
@@ -55,12 +56,12 @@ def analyze(run, seed=1):
     release_sample = round(min(c['release_time_s'] for c in config['clusters'] if c['glutamate'] > 0) / dt) // 100
     assert get('glu')[release_sample] == sum(c['glutamate'] for c in config['clusters'])
     assert np.all(get('glu')[:release_sample] == 0), 'glutamate present before release'
-    for name in ('Bm', 'Bf', 'PMCA', 'NCX', 'PLC', 'VGCC'):
+    for name in ('Bm', 'Bf', 'PMCA', 'NCX', 'PLC', 'VGCC', 'RyR', 'IP3R', 'SERCA'):
         values = get(name + '_total')
         assert np.all(values == values[0]), name + ' capacity conservation'
 
     data_model = json.loads(next(viz.glob('Scene.data_model.*.json')).read_text())['mcell']
-    assert not any(o['name'] == 'SA' for o in data_model['geometrical_objects']['object_list'])
+    assert any(o['name'] == 'SA' for o in data_model['geometrical_objects']['object_list'])
     colors = {m['mol_name']: m['display']['color'] for m in data_model['define_molecules']['molecule_list']}
     assert colors['Ca_A'] == [1.0, 0.12, 0.55] and colors['Ca_B'] == [0.1, 0.9, 0.2]
     files = sorted(viz.glob('Scene.ascii.*.dat'))
@@ -104,11 +105,16 @@ def analyze(run, seed=1):
     log = (run / 'simulation.log').read_text()
     warnings = [line for line in log.splitlines() if re.search('warning|missed|probability.*(?:exceed|greater)', line, re.I)]
     metrics = dict(validation='passed', duration_s=config['duration_s'], samples=len(expected_times),
-                   frames=len(files), source_balance='entry = free + bound + explicit sinks at every count sample',
+                   frames=len(files), source_balance='entry = free + bound + extrusion and decay + handed to ER machinery, at every count sample',
                    warnings=warnings,
                    sources={tag: dict(entry_ions=int(get('NMDAR_' + tag + '_Ca_flux')[-1]),
                        final_free=int(get('Ca_' + tag)[-1]), final_inventory=int(get('Ca_' + tag + '_inventory')[-1]),
-                       peak_free=int(get('Ca_' + tag).max())) for tag in 'AB'})
+                       peak_free=int(get('Ca_' + tag).max()),
+                       **{'to_' + partner: int(get(f'Ca_{tag}_to_{partner}')[-1]) for partner in ('SERCA', 'RyR', 'IP3R')})
+                       for tag in 'AB'},
+                   er=dict(peak_open_RyR=int(get('RyR_O').max()), peak_open_IP3R=int(get('IP3R_open').max()),
+                           RyR_release=int(get('rxn_RyR_flux_f')[-1]), RyR_uptake=int(get('rxn_RyR_flux_r')[-1]),
+                           IP3R_release=int(get('rxn_IP3R_flux')[-1])))
     (run / 'validation.json').write_text(json.dumps(metrics, indent=2) + '\n')
     print(json.dumps(metrics, indent=2))
     return metrics

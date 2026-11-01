@@ -2,6 +2,10 @@
 
 Each listed carrier holds ONE calcium in the inherited chemistry. Unoccupied
 buffers/pumps/PLC stay shared, so labels compete for the original capacity.
+
+Labels stop at the ER. Labeled calcium binds SERCA, RyR and IP3R and passes through
+open RyRs exactly as Ca2 does, but those rules end the label: anything that later
+returns to the cytosol from the ER or its channels is unlabeled Ca2.
 """
 import re
 
@@ -53,9 +57,22 @@ Names of all directed rules are explicit for validation and sink counters.
             is_source = name in ('rxn_PMCA_leak', 'rxn_NCX_leak')
             for rule_name, left, right, rate in directed:
                 output.append(f'    {rule_name}: {left} -> {right} {rate}')
-                if has_carrier and not is_source:
+                # Release toward the cytosol from the ER side stays unlabeled.
+                from_er = re.search(r'\bCa2@OUT\b', right)
+                if has_carrier and not is_source and not from_er:
                     for tag in 'AB':
                         output.append(f'    {rule_name}_{tag}: {relabel(left, tag)} -> {relabel(right, tag)} {rate}')
             continue
         output.append(line)
     return '\n'.join(output) + '\n'
+
+
+def er_handoffs(bngl_text, tag):
+    """Names of the rules that end a label at the ER, grouped by partner."""
+    groups = {'SERCA': [], 'RyR': [], 'IP3R': []}
+    pattern = re.compile(r'^\s*(\S+_' + tag + r'):\s*(.*?)\s*->')
+    for line in bngl_text.splitlines():
+        match = pattern.match(line)
+        if match and re.search(r'\bCa_' + tag + r'@OUT\b', match[2]):
+            groups[next(g for g in groups if g in match[2])].append(match[1])
+    return groups

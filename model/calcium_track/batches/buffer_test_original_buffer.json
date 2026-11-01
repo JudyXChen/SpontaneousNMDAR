@@ -1,0 +1,13 @@
+{
+  "inputs": "model/calcium_track/snapshots/buffer_test_original_buffer",
+  "outputs": "results/calcium_track/clamped/buffer_test_200nm_1000glu/original_buffer",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "workers": 5,
+  "notes": "200 nm, 1000 glutamate per site, clamped -67 mV, ER present, release at t=0."
+}

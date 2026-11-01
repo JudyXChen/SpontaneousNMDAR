@@ -94,5 +94,53 @@
   "PLC_Ca_PIP2": [
     "diffusion_constant_2d",
     0
+  ],
+  "SERCAx": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "SERCAx1": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "SERCAx2": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "SERCAy": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "SERCAy1": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "SERCAy2": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "RyR_C": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "RyR_O": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "RyR_CI": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "RyR_OI": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "IP3R": [
+    "diffusion_constant_2d",
+    0
+  ],
+  "Ca2_ER": [
+    "diffusion_constant_3d",
+    2.2e-06
   ]
 }

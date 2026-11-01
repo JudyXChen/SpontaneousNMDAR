@@ -55,8 +55,9 @@ def audit(run, initialized_only=False):
         for tag in 'AB':
             for key in ('mol_type','diffusion_constant','custom_time_step'):
                 assert molecules[labeled(carrier,tag)][key] == molecules[carrier][key], (carrier,tag,key)
-    assert not any(re.match(r'^(Ca2_ER|SERCA|RyR|IP3R)', name) for name in molecules)
-    assert 'SA' not in [o['name'] for o in dm['geometrical_objects']['object_list']]
+    for prefix in ('Ca2_ER', 'SERCA', 'RyR', 'IP3R'):
+        assert any(name.startswith(prefix) for name in molecules), prefix
+    assert 'SA' in [o['name'] for o in dm['geometrical_objects']['object_list']]
     for tag in 'AB':
         for name, rule in reactions.items():
             if name.endswith('_'+tag) and not name.startswith('rxn_NMDAR'):
@@ -100,7 +101,7 @@ def audit(run, initialized_only=False):
         release_placement=placement,
         checks=['Original snapshot hashes intact','Exported Ca_A/B diffusion and occupied-state kinetics equal Ca2',
                 'NMDAR populations use identical gating and voltage tables; each emits only its own label',
-                'VGCC/pump leak calcium remains Ca2; pumps and buffers shared','No ER species or SA object',
+                'VGCC/pump leak and ER release calcium remain Ca2; pumps, buffers and ER channels shared','ER species and SA object present',
                 'Exported glutamate release coordinates match configuration and lie in the local cleft',
                 'All initial NMDAR particles lie on their assigned cluster triangles'],
         region_center_distance_nm=float(np.linalg.norm(centers[1]-centers[0])*1000),
@@ -124,12 +125,13 @@ def audit(run, initialized_only=False):
             assert np.array_equal(trace('Ca_'+tag),free_inside),tag+' free calcium outside cytoplasm'
             inventory = sum(trace(labeled(c,tag)) for c in CARRIERS)
             removed = sum(trace(s+'_'+tag) for s in ('Ca2Null','rxn_PMCA','rxn_NCX'))
+            removed = removed + sum(trace(f'Ca_{tag}_to_{p}') for p in ('SERCA','RyR','IP3R'))
             residual = entry-inventory-removed
             assert np.all(residual==0), tag+' balance'
             assert np.all(trace('NMDAR_'+tag+'_total')==config['clusters']['AB'.index(tag)]['receptors'])
             balance[tag] = dict(entry=int(entry[-1]), final_inventory=int(inventory[-1]),
                                 final_removed=int(removed[-1]), max_abs_residual=int(abs(residual).max()))
-        for partner in ('Bm','Bf','PMCA','NCX','PLC'):
+        for partner in ('Bm','Bf','PMCA','NCX','PLC','RyR','IP3R','SERCA'):
             total = trace(partner+'_total')
             assert np.all(total==total[0]), partner
         # Surface populations must stay fixed through ALL gating states/frames.
