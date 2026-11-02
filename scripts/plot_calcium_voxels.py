@@ -13,7 +13,8 @@ Each label is split by time since its own cluster last conducted. In each window
 
 Maps are 2D: side view (the axis the clusters are separated along, against z, from the
 spine root to the head) through a slab around the clusters, and top view (x, y) in a band just under the PSD. The ER
-outline is drawn when the run has one.
+outline is drawn when the run has one. Voxels are clipped to the membrane outline only: the slab
+also holds cytosol in front of and behind the ER, so color inside the ER line can be real.
 
 Usage: plot_calcium_voxels.py OUTPUT_DIRECTORY RUN [RUN ...] [--state free|bound]
 Bound maps include buffers, pumps and PLC, and read 'Bound ions' on the color bar.
@@ -29,6 +30,8 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_rgb
 from matplotlib.lines import Line2D
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path as PlotPath
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -44,6 +47,9 @@ WINDOWS = (('conducting', 0.0, 0.0), ('0_to_50us', 0.0, 0.05),
            ('50us_to_1ms', 0.05, 1.0), ('after_1ms', 1.0, np.inf))
 SLAB_HALF_WIDTH_UM = 0.15
 BAND_BELOW_PSD_UM = (1.55, 1.70)
+# preference = (r - 1) / (r + 1) for an enrichment ratio r, so the bar can read in fold change.
+FOLD_TICKS = (-1, -3 / 5, -1 / 3, 0, 1 / 3, 3 / 5, 1)
+FOLD_LABELS = ('only', '4×', '2×', 'equal', '2×', '4×', 'only')
 
 
 def read_mesh(path, name):
@@ -64,6 +70,39 @@ def mesh_section(vertices, walls, axis, value):
         if len(points) == 2:
             segments.append(points)
     return np.asarray(segments)
+
+
+def outer_outline(segments):
+    """Largest closed loop in a mesh section, as a clip path."""
+    key = lambda point: tuple(np.round(point, 8))
+    neighbors = {}
+    for a, b in segments:
+        neighbors.setdefault(key(a), []).append(key(b))
+        neighbors.setdefault(key(b), []).append(key(a))
+    loops, seen = [], set()
+    for start in neighbors:
+        if start in seen:
+            continue
+        loop, previous, current = [start], None, start
+        seen.add(start)
+        while True:
+            following = [n for n in neighbors[current] if n != previous]
+            if not following or following[0] == start or following[0] in seen:
+                break
+            previous, current = current, following[0]
+            seen.add(current)
+            loop.append(current)
+        loops.append(np.asarray(loop))
+    area = lambda xy: abs(np.dot(xy[:, 0], np.roll(xy[:, 1], 1)) - np.dot(xy[:, 1], np.roll(xy[:, 0], 1)))
+    best = max(loops, key=area)
+    return PlotPath(np.vstack((best, best[:1])), closed=True)
+
+
+def label_fold_bar(bar):
+    bar.set_ticks(FOLD_TICKS, labels=FOLD_LABELS)
+    bar.set_label('Enrichment, each label relative to its total')
+    bar.ax.text(0, 1.2, 'Ca_B', transform=bar.ax.transAxes, color=GREEN, fontweight='bold', ha='left', va='bottom')
+    bar.ax.text(1, 1.2, 'Ca_A', transform=bar.ax.transAxes, color=PINK, fontweight='bold', ha='right', va='bottom')
 
 
 def time_since_conducting(run, seed, tag):
@@ -151,28 +190,26 @@ def grids(values, tag, window, view, ranges):
     return array
 
 
-def save_map(fig, ax, image, path, colorbar_label, ticks=None):
+def save_map(fig, ax, image, path, colorbar_label=None):
     """Clean panel in fig/, viewing copy with colorbar, and a reusable colorbar PNG."""
     path = Path(path)
     (path.parent / 'fig').mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(path.parent / 'fig' / path.name, dpi=style.DPI)
     bar = fig.colorbar(image, ax=ax, orientation='horizontal', location='bottom', fraction=0.05, pad=0.2)
-    bar.set_label(colorbar_label)
-    if ticks is not None:
-        bar.set_ticks(list(ticks.values()), labels=list(ticks))
+    if colorbar_label is None:
+        label_fold_bar(bar)
+    else:
+        bar.set_label(colorbar_label)
     fig.savefig(path, dpi=style.DPI, bbox_inches='tight', pad_inches=0.05)
     plt.close(fig)
     print(f'Saved -> {path}')
 
 
-def save_colorbar(image_map, norm, path, label, ticks=None):
+def save_colorbar(image_map, norm, path):
     fig = plt.figure(figsize=(2.8, 0.6))
     ax = fig.add_axes((0.08, 0.62, 0.84, 0.22))
-    bar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=image_map), cax=ax, orientation='horizontal')
-    bar.set_label(label)
-    if ticks is not None:
-        bar.set_ticks(list(ticks.values()), labels=list(ticks))
+    label_fold_bar(fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=image_map), cax=ax, orientation='horizontal'))
     fig.savefig(path, dpi=style.DPI, transparent=True, bbox_inches='tight', pad_inches=0.02)
     plt.close(fig)
 
@@ -200,6 +237,7 @@ def main():
     vertices, walls = read_mesh(ROOT / 'model/shared/geometry/Mushroom_dendrite.py', 'Mushroom_dendrite')
     side_mesh = [mesh_section(vertices, walls, 1 - along, slab_center)]
     top_mesh = [mesh_section(vertices, walls, 2, 1.55)]
+    clips = {'side': outer_outline(side_mesh[0][:, :, [along, 2]]), 'top': outer_outline(top_mesh[0][:, :, :2])}
     # Frozen inputs may stay on the computer that ran the simulation.
     if any('SA object present' in check for check in audit['checks']):
         er_vertices, er_walls = read_mesh(ROOT / 'model/shared/geometry/SA.py', 'SA')
@@ -243,6 +281,7 @@ def main():
                 current.set_bad(MASK)
                 image = ax.imshow(np.ma.masked_invalid(data), origin='lower', extent=extent, cmap=current,
                                   norm=norm, interpolation='nearest', aspect='equal')
+                image.set_clip_path(PathPatch(clips[view], transform=ax.transData))
                 for mesh in (side_mesh if view == 'side' else top_mesh):
                     for segment in mesh:
                         points = segment[:, [along, 2]] if view == 'side' else segment[:, :2]
@@ -255,16 +294,14 @@ def main():
                 return fig, ax, image
 
             fig, ax, image = draw(preference, LABEL_MAP, Normalize(-1, 1))
-            save_map(fig, ax, image, output / f'{view}_{name}_preference.png', 'Share of own label',
-                     {'Ca_B': -1, 'equal': 0, 'Ca_A': 1})
+            save_map(fig, ax, image, output / f'{view}_{name}_preference.png')
             top = max(maps['A'].max(), maps['B'].max())
             if top > 0:
                 for tag in 'AB':
                     fig, ax, image = draw(maps[tag], style.blue_colormap(), Normalize(0, top))
                     save_map(fig, ax, image, output / f'{view}_{name}_Ca_{tag}.png',
                              f'{args.state.capitalize()} ions per voxel per frame')
-    save_colorbar(LABEL_MAP, Normalize(-1, 1), output / 'fig/preference_colorbar.png', 'Share of own label',
-                  {'Ca_B': -1, 'equal': 0, 'Ca_A': 1})
+    save_colorbar(LABEL_MAP, Normalize(-1, 1), output / 'fig/preference_colorbar.png')
     handles = [Line2D([], [], linestyle='', marker='x', color=PINK, label='Cluster A'),
                Line2D([], [], linestyle='', marker='x', color=GREEN, label='Cluster B'),
                Line2D([], [], color='#333333', linewidth=0.8, label='Membrane, ER')]
