@@ -44,7 +44,8 @@ def main():
         parser.error('Output already exists; choose a new directory')
     if out.is_relative_to(ROOT / 'model'):
         parser.error('Use results/ for output, not model/')
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')
+    # The process ID keeps snapshots apart when seeds of one case start in the same microsecond.
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ') + f'_{os.getpid()}'
     inputs = COMMON / 'snapshots' / stamp / args.model.name
     hashes = materialize(args.model, inputs)
     out.mkdir(parents=True)
