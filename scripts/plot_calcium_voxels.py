@@ -11,11 +11,12 @@ Each label is split by time since its own cluster last conducted. In each window
                look more widespread. -1 is all Ca_B (green), +1 is all Ca_A (pink),
                0 is an equal share. Voxels with few sampled ions are gray.
 
-Maps are 2D: side view (the axis the clusters are separated along, against z) through
-a slab around the clusters, and top view (x, y) in a band just under the PSD. The ER
+Maps are 2D: side view (the axis the clusters are separated along, against z, from the
+spine root to the head) through a slab around the clusters, and top view (x, y) in a band just under the PSD. The ER
 outline is drawn when the run has one.
 
-Usage: plot_calcium_voxels.py OUTPUT_DIRECTORY RUN [RUN ...]
+Usage: plot_calcium_voxels.py OUTPUT_DIRECTORY RUN [RUN ...] [--state free|bound]
+Bound maps include buffers, pumps and PLC, and read 'Bound ions' on the color bar.
 """
 import argparse
 import ast
@@ -88,7 +89,7 @@ def window_index(since):
     return tuple(i for i, (_, low, high) in enumerate(WINDOWS) if i and low < since <= high)
 
 
-def load_seed(run, seed, along, slab_center, slab_half_width):
+def load_seed(run, seed, along, slab_center, slab_half_width, state):
     """Voxel counts per window for one seed, as {(label, window, view): {(u, z): count}}."""
     since = {tag: time_since_conducting(run, seed, tag) for tag in 'AB'}
     frames = {tag: np.zeros(len(WINDOWS) + 1) for tag in 'AB'}
@@ -100,7 +101,7 @@ def load_seed(run, seed, along, slab_center, slab_half_width):
     counts = {}
     with gzip.open(run / 'spatial/calcium_voxels.csv.gz', 'rt', newline='') as stream:
         for row in csv.DictReader(stream):
-            if row['state'] != 'free' or row['source'] not in ('A', 'B'):
+            if row['state'] != state or row['source'] not in ('A', 'B'):
                 continue
             tag = row['source']
             ix, iy, iz = int(row['ix']), int(row['iy']), int(row['iz'])
@@ -121,7 +122,7 @@ def load_seed(run, seed, along, slab_center, slab_half_width):
     return counts, frames
 
 
-def accumulate(runs, along, slab_center):
+def accumulate(runs, along, slab_center, state):
     """Per-frame occupancy averaged across seeds, and raw sampled ions."""
     occupancy, sampled = {}, {}
     used = {(tag, w): 0 for tag in 'AB' for w in range(len(WINDOWS) + 1)}
@@ -129,7 +130,7 @@ def accumulate(runs, along, slab_center):
     for run in runs:
         seed = json.loads((run / 'status.json').read_text())['seed']
         print(f'Reading seed {seed}', flush=True)
-        counts, frames = load_seed(run, seed, along, slab_center, SLAB_HALF_WIDTH_UM)
+        counts, frames = load_seed(run, seed, along, slab_center, SLAB_HALF_WIDTH_UM, state)
         for tag in 'AB':
             for window in range(number + 1):
                 # A seed where a cluster never opened has no frames in its time windows.
@@ -180,6 +181,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('output', type=Path)
     parser.add_argument('runs', type=Path, nargs='+')
+    parser.add_argument('--state', choices=('free', 'bound'), default='free')
     args = parser.parse_args()
     runs = [run.resolve() for run in args.runs]
     audit = json.loads((runs[0] / 'audit.json').read_text())
@@ -192,24 +194,25 @@ def main():
     slab_center = float((A[1 - along] + B[1 - along]) / 2)
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    occupancy, sampled, used = accumulate(runs, along, slab_center)
+    occupancy, sampled, used = accumulate(runs, along, slab_center, args.state)
     n = len(runs)
     size = 0.05
     vertices, walls = read_mesh(ROOT / 'model/shared/geometry/Mushroom_dendrite.py', 'Mushroom_dendrite')
     side_mesh = [mesh_section(vertices, walls, 1 - along, slab_center)]
     top_mesh = [mesh_section(vertices, walls, 2, 1.55)]
-    inputs = runs[0] / json.loads((runs[0] / 'input_reference.json').read_text())['input_directory']
-    if (inputs / 'geometry/SA.py').exists():
-        er_vertices, er_walls = read_mesh(inputs / 'geometry/SA.py', 'SA')
+    # Frozen inputs may stay on the computer that ran the simulation.
+    if any('SA object present' in check for check in audit['checks']):
+        er_vertices, er_walls = read_mesh(ROOT / 'model/shared/geometry/SA.py', 'SA')
         side_mesh.append(mesh_section(er_vertices, er_walls, 1 - along, slab_center))
         top_mesh.append(mesh_section(er_vertices, er_walls, 2, 1.5))
     views = {
-        'side': dict(ranges=((-11, 10), (20, 35)), xlabel=axis_name + ' (µm)', ylabel='z (µm)'),
+        'side': dict(ranges=((-11, 10), (10, 35)),  # z from the spine root (0.5 um) to the head
+                      xlabel=axis_name + ' (µm)', ylabel='z (µm)'),
         'top': dict(ranges=((-11, 10), (-11, 10)), xlabel='x (µm)', ylabel='y (µm)'),
     }
     style.apply_style()
     names = [w[0] for w in WINDOWS] + ['all_frames']
-    summary = dict(seeds=n, voxel_um=size, side_axis=axis_name, tilt_of_separation_from_axis_deg=tilt, slab_center_um=slab_center,
+    summary = dict(seeds=n, state=args.state, voxel_um=size, side_axis=axis_name, tilt_of_separation_from_axis_deg=tilt, slab_center_um=slab_center,
                    slab_half_width_um=SLAB_HALF_WIDTH_UM, top_band_z_um=BAND_BELOW_PSD_UM,
                    min_sampled_ions=MIN_SAMPLED_IONS, windows={})
     arrays = {}
@@ -227,7 +230,7 @@ def main():
             if total['A'] > 0 and total['B'] > 0:
                 a, b = maps['A'] / total['A'], maps['B'] / total['B']
                 valid = enough & ((a + b) > 0)
-                preference[valid] = ((a - b) / (a + b))[valid]
+                preference[valid] = (a[valid] - b[valid]) / (a[valid] + b[valid])
             arrays[f'{view}_{name}_preference'] = preference
             summary['windows'][name][view] = {
                 'sampled_ions_A': int(raw['A'].sum()), 'sampled_ions_B': int(raw['B'].sum()),
@@ -259,7 +262,7 @@ def main():
                 for tag in 'AB':
                     fig, ax, image = draw(maps[tag], style.blue_colormap(), Normalize(0, top))
                     save_map(fig, ax, image, output / f'{view}_{name}_Ca_{tag}.png',
-                             'Free ions per voxel per frame')
+                             f'{args.state.capitalize()} ions per voxel per frame')
     save_colorbar(LABEL_MAP, Normalize(-1, 1), output / 'fig/preference_colorbar.png', 'Share of own label',
                   {'Ca_B': -1, 'equal': 0, 'Ca_A': 1})
     handles = [Line2D([], [], linestyle='', marker='x', color=PINK, label='Cluster A'),
