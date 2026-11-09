@@ -21,19 +21,20 @@ def main():
     if (RESULTS / 'conductance/comparison.csv').exists():
         tasks.append(('plot_conductance.py', '--from-csv', '--output-dir', RESULTS / 'conductance'))
     for protocol in ('evoked', 'spont'):
-        for output in sorted((RESULTS / protocol / 'conditions').iterdir()):
-            model = MODELS / protocol / output.name
+        for case in sorted((RESULTS / protocol / 'runs').iterdir()):
+            model, output = MODELS / protocol / case.name, case / 'plots'
+            if not model.is_dir():
+                continue
             if (output / 'ca_er.png').exists():
                 tasks.append(('plot_condition.py', 'calcium', model))
             if (output / 'flux_nmdar.png').exists():
                 tasks.append(('plot_condition.py', 'flux', model))
             if protocol == 'evoked' and (output / 'psd_layout.png').exists():
                 tasks.append(('plot_condition.py', 'traces', model))
-    tasks += [('plot_evoked_compare.py', 'one-or-two'),
-              ('plot_evoked_compare.py', 'distance'),
-              ('plot_evoked_compare.py', 'distance', '--receptors', '3'),
+    tasks += [('plot_evoked_compare.py', 'batch'),
               ('plot_evoked_compare.py', 'small-cluster'),
-              ('plot_spont_compare.py', '--raw-only', '--output-dir', RESULTS / 'spont/compare_1cluster')]
+              ('plot_evoked_compare.py', 'controls'),
+              ('plot_seed_means.py',)]
     for index, (script, *arguments) in enumerate(tasks, 1):
         print(f'[{index}/{len(tasks)}] {script} {" ".join(map(str, arguments))}', flush=True)
         subprocess.run([sys.executable, str(ROOT / 'scripts' / script), *map(str, arguments)], cwd=ROOT, check=True)

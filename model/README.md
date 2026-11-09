@@ -26,6 +26,11 @@ Each MCell model uses the same small set of files:
 | `shared/build.py`, `batch.py`, `validate_run.py`, `run_legacy.py` | Build, run and check runs |
 | `calcium_total/evoked/CASE/` | One folder per condition: own `model.bngl` and `instantiation.py`, links for the rest |
 | `calcium_total/spont/CASE/` | One folder per condition: `instantiation.json` and `parameters.json` |
+
+`calcium_total` condition names read `<clusters>x<NMDAR per cluster>[_<distance>nm]_<glutamate per site>g`:
+`1x10_500g` is one cluster of 10 NMDARs with 500 glutamate; `2x10_100nm_250g` is two clusters of 10,
+100 nm apart, with 250 glutamate released at each. Results use the same names, with `_Aonly` added when
+glutamate is released at cluster A only.
 | `calcium_track/` | See below |
 
 ## calcium_track

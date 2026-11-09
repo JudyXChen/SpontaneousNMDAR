@@ -43,16 +43,13 @@ PANELS = (
 )
 
 TRACE_COLORS = {
-    'calcium_total/evoked/1_cluster_10_NMDAR': condition_color('blue', 'dark'),
-    'calcium_total/evoked/2_cluster_50nm': condition_color('purple', 'dark'),
-    'calcium_total/evoked/2_cluster_100nm': condition_color('orange', 'dark'),
-    'calcium_total/evoked/2_cluster_200nm': condition_color('blue', 'dark'),
-    'calcium_total/evoked/2_cluster_50nm_3_NMDAR_each':
-        condition_color('purple', 'dark'),
-    'calcium_total/evoked/2_cluster_100nm_3_NMDAR_each':
-        condition_color('orange', 'dark'),
-    'calcium_total/evoked/2_cluster_200nm_3_NMDAR_each':
-        condition_color('blue', 'dark'),
+    'calcium_total/evoked/1x10_500g': condition_color('blue', 'dark'),
+    'calcium_total/evoked/2x10_50nm_250g': condition_color('purple', 'dark'),
+    'calcium_total/evoked/2x10_100nm_250g': condition_color('orange', 'dark'),
+    'calcium_total/evoked/2x10_200nm_250g': condition_color('blue', 'dark'),
+    'calcium_total/evoked/2x3_50nm_250g': condition_color('purple', 'dark'),
+    'calcium_total/evoked/2x3_100nm_250g': condition_color('orange', 'dark'),
+    'calcium_total/evoked/2x3_200nm_250g': condition_color('blue', 'dark'),
 }
 
 
@@ -79,7 +76,7 @@ def literal_assignments(path: Path, names: set[str]) -> dict[str, object]:
 
 
 def load_trace(model_dir: Path, seed: int, file_name: str) -> np.ndarray:
-    path = results_for(model_dir) / 'react_data' / f'seed_{seed:05d}' / file_name
+    path = results_for(model_dir) / f'seed_{seed:05d}' / 'react_data' / f'seed_{seed:05d}' / file_name
     values = np.loadtxt(path)
     if values.ndim != 2 or values.shape[1] != 2:
         raise ValueError(f'Expected a two-column trace: {path}')
@@ -89,7 +86,7 @@ def load_trace(model_dir: Path, seed: int, file_name: str) -> np.ndarray:
 
 
 def positions(model_dir: Path, seed: int, iteration: int, species: str) -> np.ndarray:
-    path = (results_for(model_dir) / 'viz_data' / f'seed_{seed:05d}'
+    path = (results_for(model_dir) / f'seed_{seed:05d}' / 'viz_data' / f'seed_{seed:05d}'
             / f'Scene.ascii.{iteration:06d}.dat')
     if iteration == 0 and not path.exists():
         path = path.with_name('Scene.ascii.0000.dat')
@@ -178,7 +175,8 @@ def run_traces(args):
 
 def run_calcium(ARGS):
     MODEL_DIR = ARGS.model_dir.resolve()
-    REACT = str(results_for(MODEL_DIR) / 'react_data')
+    # Every seed: runs/<case>/seed_NNNNN/react_data/seed_NNNNN
+    REACT = str(results_for(MODEL_DIR) / 'seed_[0-9][0-9][0-9][0-9][0-9]' / 'react_data')
     if ARGS.output_dir is None:
         OUTDIR = str(condition_output_dir(MODEL_DIR))
     else:
@@ -383,7 +381,8 @@ def run_flux(ARGS):
     N_NCX_TOTAL = 142.0 * PM_AREA    # ~798   (NCX  density 142 /um^2)
 
     MODEL_DIR = ARGS.model_dir.resolve()
-    REACT = str(results_for(MODEL_DIR) / 'react_data')
+    # Every seed: runs/<case>/seed_NNNNN/react_data/seed_NNNNN
+    REACT = str(results_for(MODEL_DIR) / 'seed_[0-9][0-9][0-9][0-9][0-9]' / 'react_data')
     PARAMS = str(MODEL_DIR / 'parameters.py')
     if ARGS.output_dir is None:
         OUTDIR = str(condition_output_dir(MODEL_DIR))

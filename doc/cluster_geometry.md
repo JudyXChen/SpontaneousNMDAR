@@ -17,7 +17,7 @@ CLUSTER_WALL_INDICES = (
 ```
 
 The selected wall indices are the actual geometry definition. A directory
-name such as `2_cluster_100nm` records the intended condition, but does not
+name such as `2x10_100nm_250g` records the intended condition, but does not
 itself control the separation.
 
 MCell places an exact number of receptors on each selected surface region. In

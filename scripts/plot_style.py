@@ -90,7 +90,7 @@ def legend_below(ax, ncol=1, **kwargs):
 def condition_output_dir(model_dir):
     """Group individual conditions under their kinetics/protocol branch."""
     from scripts.paths import results_for
-    return results_for(model_dir)
+    return results_for(model_dir) / "plots"
 
 
 def save(fig, path, *, legend_name="auto"):

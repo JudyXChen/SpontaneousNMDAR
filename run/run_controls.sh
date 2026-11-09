@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # calcium_total evoked control experiments, seeds 1-5 (60 runs), most important first:
-#   part 1, cluster split:   1x10 NMDAR / 250 glu;  1x20 NMDAR / 500 glu (area-matched patch)
-#   part 2, glutamate dose:  2x10 NMDAR at 50/100/200 nm, 500 and 1000 glu per site
-#   single-cluster dose:     1x10 NMDAR / 1000 glu
-#   crosstalk:               2x10 NMDAR at 50/100/200 nm, 250 glu at cluster A only
-# Baselines already run elsewhere (1x10/500; 2x10/250+250) are not repeated.
-# Output: results/calcium_total/controls/LABEL/seed_NNNNN, where LABEL is the model
-# folder name, plus _gluA for the crosstalk runs.
+#   part 1, cluster split:   1x10_250g; 1x20_500g (area-matched patch)
+#   part 2, glutamate dose:  2x10_{50,100,200}nm_{500,1000}g
+#   single-cluster dose:     1x10_1000g
+#   crosstalk:               2x10_{50,100,200}nm_250g_Aonly (glutamate at cluster A only)
+# Baselines already run (1x10_500g; 2x10_*nm_250g) are not repeated.
+# Names: <clusters>x<NMDAR per cluster>[_<distance>nm]_<glutamate per site>g[_Aonly].
+# Output: results/calcium_total/evoked/runs/CASE/seed_NNNNN, beside the baseline runs.
+# Progress: runs/controls_progress.log
 # Finished runs are skipped, so the same command resumes after an interruption.
 # Usage: bash run/run_controls.sh [--smoke] [JOBS, default 8]
 # Elsewhere than this Mac, set MCELL_PATH and PYTHON first.
@@ -19,7 +20,7 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_TH
 
 if [[ "${1:-}" == --one ]]; then
     case_name="$2"; sites="$3"; seed="$4"
-    label="$case_name"; [[ "$sites" == 1 ]] && label="${case_name}_gluA"
+    label="$case_name"; [[ "$sites" == 1 ]] && label="${case_name}_Aonly"
     work="$CONTROLS_OUT/$label/seed_$(printf %05d "$seed")"
     [[ -e "$work/DONE" ]] && { echo "SKIP  $label seed $seed"; exit 0; }
     [[ -e "$work" ]] && mv "$work" "$work.partial_$(date +%s)"
@@ -51,7 +52,7 @@ fi
 smoke=''
 if [[ "${1:-}" == --smoke ]]; then smoke=1; shift; fi
 jobs="${1:-8}"
-export CONTROLS_OUT="${CONTROLS_OUT:-$repo/results/calcium_total/controls}"
+export CONTROLS_OUT="${CONTROLS_OUT:-$repo/results/calcium_total/evoked/runs}"
 export CONTROLS_ITERATIONS=350000
 if [[ -n "$smoke" ]]; then
     export CONTROLS_ITERATIONS=1000 CONTROLS_OUT="${CONTROLS_OUT}_smoke"
@@ -59,14 +60,15 @@ fi
 mkdir -p "$CONTROLS_OUT"
 
 queue() {
-    for c in 1_cluster_10_NMDAR_250_glu 1_cluster_20_NMDAR_500_glu; do
+    for c in 1x10_250g 1x20_500g; do
         for seed in 1 2 3 4 5; do echo "$c both $seed"; done; done
     for g in 500 1000; do for d in 50 100 200; do
-        for seed in 1 2 3 4 5; do echo "2_cluster_${d}nm_${g}_glu both $seed"; done; done; done
-    for seed in 1 2 3 4 5; do echo "1_cluster_10_NMDAR_1000_glu both $seed"; done
-    for d in 50 100 200; do for seed in 1 2 3 4 5; do echo "2_cluster_${d}nm 1 $seed"; done; done
+        for seed in 1 2 3 4 5; do echo "2x10_${d}nm_${g}g both $seed"; done; done; done
+    for seed in 1 2 3 4 5; do echo "1x10_1000g both $seed"; done
+    for d in 50 100 200; do for seed in 1 2 3 4 5; do echo "2x10_${d}nm_250g 1 $seed"; done; done
 }
 total=$(queue | wc -l | tr -d ' ')
 [[ -x /usr/bin/caffeinate ]] && keep_awake=(/usr/bin/caffeinate -i) || keep_awake=()
-queue | "${keep_awake[@]+"${keep_awake[@]}"}" xargs -P "$jobs" -L 1 bash "$repo/run/run_controls.sh" --one 2>&1 | tee -a "$CONTROLS_OUT/progress.log"
-echo "Finished: $(find "$CONTROLS_OUT" -name DONE | wc -l | tr -d ' ') of $total runs. Failures, if any: grep FAILED $CONTROLS_OUT/progress.log"
+queue | "${keep_awake[@]+"${keep_awake[@]}"}" xargs -P "$jobs" -L 1 bash "$repo/run/run_controls.sh" --one 2>&1 | tee -a "$CONTROLS_OUT/controls_progress.log"
+done_count=$(queue | while read -r c sites seed; do l=$c; [[ $sites == 1 ]] && l=${c}_Aonly; if [[ -e "$CONTROLS_OUT/$l/seed_$(printf %05d "$seed")/DONE" ]]; then echo; fi; done | wc -l | tr -d ' ')
+echo "Finished: $done_count of $total runs. Failures, if any: grep FAILED $CONTROLS_OUT/controls_progress.log"

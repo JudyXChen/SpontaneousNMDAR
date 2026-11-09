@@ -1,10 +1,11 @@
-"""Seed means with SD bands for slides 23 and 24, from whichever seeds have finished.
+"""Seed means with SD bands from every seed in results/calcium_total/{evoked,spont}/runs/CASE.
 
-Evoked 2-cluster cases combine the new results/calcium_total/nov2 runs with seeds 2-4 from
-evoked/distance_seeds2_4. Its seed 1 is skipped: it predates NMDAR-first placement.
+Figures:
+  evoked/compare/1x10_vs_2x10/   1x10_500g vs 2x10_100nm_250g (EPSP + bAP)
+  spont/compare/2x10_distance/   2x10 at 50/100/200 nm, 250 g (glutamate only, resting voltage)
+The evoked distance series is plotted by plot_evoked_compare.py batch (evoked/compare/2x10_distance/).
 
-Usage: plot_nov2_seed_means.py [--nov2 DIR] [--output DIR]
-Figures: DIR/{slide23_one_or_two,slide24_evoked_distance,slide24_glutamate_only}/
+Usage: plot_seed_means.py [--results DIR]
 """
 import argparse
 import csv
@@ -21,24 +22,16 @@ sys.path.insert(0, str(ROOT))
 from scripts.plot_style import apply_style, condition_color, figure, save, save_legend
 
 TOTAL = ROOT / 'results/calcium_total'
-OLD_EVOKED = TOTAL / 'evoked/distance_seeds2_4'
 PANELS = (('NMDAR_Ca_flux_World.dat', 'Cumulative modeled NMDAR\nCa$^{2+}$ entry (firings)', 'NMDAR_Ca_entry'),
           ('NMDAR_World.dat', 'Open NMDAR (count)', 'open_NMDAR'),
           ('Ca2_Mushroom_transparent.dat', 'Spine cytosolic free Ca$^{2+}$ (ions)', 'spine_cytosolic_Ca'))
 DISTANCE_COLORS = zip((50, 100, 200), ('purple', 'orange', 'blue'))
 
 
-def find_seed_runs(nov2, protocol, case):
-    """Return {seed: run directory}, requiring DONE for the new runs."""
-    runs = {}
-    if protocol == 'evoked':
-        for seed in (2, 3, 4):
-            work = OLD_EVOKED / case / f'seed_{seed:05d}'
-            if work.is_dir():
-                runs[seed] = work
-    for done in sorted((nov2 / protocol / case).glob('seed_*/DONE')):
-        runs[int(done.parent.name.split('_')[1])] = done.parent
-    return dict(sorted(runs.items()))
+def find_seed_runs(results, protocol, case):
+    """Return {seed: run directory} for every seed folder of one case."""
+    return {int(work.name.split('_')[1]): work
+            for work in sorted((results / protocol / 'runs' / case).glob('seed_[0-9][0-9][0-9][0-9][0-9]'))}
 
 
 def load(run, seed, name, samples):
@@ -49,10 +42,10 @@ def load(run, seed, name, samples):
     return values
 
 
-def make_figure(output, nov2, protocol, cases, samples, release_ms, xticks):
+def make_figure(output, results, protocol, cases, samples, release_ms, xticks):
     """cases: (case folder, label, color). Writes one panel per observable, a legend and data."""
     output.mkdir(parents=True, exist_ok=True)
-    found = {case: find_seed_runs(nov2, protocol, case) for case, _, _ in cases}
+    found = {case: find_seed_runs(results, protocol, case) for case, _, _ in cases}
     if not all(len(runs) >= 1 for runs in found.values()):
         print(f'Skipping {output.name}; no finished seeds yet for ' +
               ', '.join(case for case, runs in found.items() if not runs))
@@ -94,19 +87,17 @@ def make_figure(output, nov2, protocol, cases, samples, release_ms, xticks):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--nov2', type=Path, default=TOTAL / 'nov2')
-    parser.add_argument('--output', type=Path)
+    parser.add_argument('--results', type=Path, default=TOTAL,
+                        help='folder holding evoked/ and spont/; figures are written there too')
     args = parser.parse_args()
-    nov2 = args.nov2.resolve()
-    output = (args.output or nov2 / 'figures').resolve()
+    results = args.results.resolve()
     apply_style()
-    distances = [(f'2_cluster_{d}nm', f'{d} nm', condition_color(family, 'dark')) for d, family in DISTANCE_COLORS]
-    make_figure(output / 'slide23_one_or_two', nov2, 'evoked',
-                [('1_cluster_10_NMDAR', 'One cluster', condition_color('blue', 'dark')),
-                 ('2_cluster_100nm', 'Two clusters, 100 nm', condition_color('orange', 'dark'))],
+    distances = [(f'2x10_{d}nm_250g', f'{d} nm', condition_color(family, 'dark')) for d, family in DISTANCE_COLORS]
+    make_figure(results / 'evoked/compare/1x10_vs_2x10', results, 'evoked',
+                [('1x10_500g', 'One cluster', condition_color('blue', 'dark')),
+                 ('2x10_100nm_250g', 'Two clusters, 100 nm', condition_color('orange', 'dark'))],
                 3501, 0, (0, 10, 20, 30))
-    make_figure(output / 'slide24_evoked_distance', nov2, 'evoked', distances, 3501, 0, (0, 10, 20, 30))
-    make_figure(output / 'slide24_glutamate_only', nov2, 'spont', distances, 4501, 10, (-10, 0, 10, 20, 30))
+    make_figure(results / 'spont/compare/2x10_distance', results, 'spont', distances, 4501, 10, (-10, 0, 10, 20, 30))
 
 
 if __name__ == '__main__':

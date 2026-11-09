@@ -17,38 +17,34 @@ results/           simulation output (see results/README.md)
 
 ## Requirements
 
-MCell4 with its compatible Python (on Windows, see [doc/run_windows.md](doc/run_windows.md)), as shipped with
-[CellBlender](https://mcell.org). Launchers find a local Blender 4.4.3 CellBlender
-install automatically; elsewhere set `MCELL_PATH` and `PYTHON`.
+MCell4 with its compatible Python, as shipped with [CellBlender](https://mcell.org).
+`scripts/runtime.sh` finds a local Blender 4.4.3 CellBlender install automatically;
+elsewhere (including WSL on Windows) set `MCELL_PATH` and `PYTHON`.
 
 ## Run
 
 From the repository root:
 
 ```sh
-# Source-labeled calcium: build frozen inputs, then run one seed
-python3 -B model/calcium_track/build.py model/calcium_track/snapshots/my_run \
-  --condition model/calcium_track/conditions/2_cluster_200nm.json
-bash run/run_calcium_track.sh model/calcium_track/snapshots/my_run \
-  results/calcium_track/my_run my-session 1
-
-# Immobile-buffer comparison: two batches of five seeds in tmux
-bash run/run_buffer_test.sh
-
-# The same comparison with EPSP + bAP
-bash run/run_evoked_buffer_test.sh
-
-# Pooled calcium at resting voltage
-bash run/run_spont_distance.sh --list
-bash run/run_spont_distance.sh --seeds 1 2 3 4
-
-# Pooled calcium with the prescribed EPSP + bAP waveform
-bash run/run_evoked_distance.sh --help
-
 # Evoked controls (cluster split, glutamate dose, crosstalk): 60 runs, resumable
 bash run/run_controls.sh 8
-python3 -B scripts/plot_evoked_compare.py controls
+python3 -B scripts/plot_evoked_compare.py controls   # also: batch, small-cluster
+python3 -B scripts/plot_seed_means.py                # 1x10 vs 2x10; spont distance series
+
+# One calcium_total seed by hand (evoked, then resting voltage)
+python3 -B model/shared/run_legacy.py model/calcium_total/evoked/2x10_100nm_250g \
+  results/calcium_total/evoked/runs/2x10_100nm_250g/seed_00006 6
+python3 -B model/calcium_total/spont/2x10_100nm_250g/model.py --seeds 6 --output NEW_DIRECTORY
+
+# Source-labeled calcium: build frozen inputs, then run one seed or a planned batch
+python3 -B model/calcium_track/build.py model/calcium_track/snapshots/my_run \
+  --condition model/calcium_track/conditions/2_cluster_200nm.json
+python3 -B model/calcium_track/run.py results/calcium_track/my_run --inputs model/calcium_track/snapshots/my_run --seed 1
+python3 -B model/calcium_track/batch.py model/calcium_track/batches/buffer_test_original_buffer.json --workers 5
 ```
+
+Use the CellBlender Python (`$PYTHON`) for anything that imports MCell.
+Earlier launchers (distance batches, buffer tests, tmux wrappers) are in Git history.
 
 See [model/README.md](model/README.md) for how the model files fit together and
 [doc/README.md](doc/README.md) for details.

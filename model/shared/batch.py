@@ -20,10 +20,9 @@ ROOT = MODEL_ROOT.parent
 def suite_leaves(suite):
     calibrated = MODEL_ROOT / 'calcium_total'
     if suite == 'spont_1_vs_2':
-        return [calibrated / 'spont/1_cluster_10_NMDAR', calibrated / 'spont/2_cluster_100nm']
+        return [calibrated / 'spont/1x10_500g', calibrated / 'spont/2x10_100nm_250g']
     family = 'spont'
-    return [calibrated / family / (f'2_cluster_{d}nm' + ('_3_NMDAR_each' if n == 3 else ''))
-            for n in (10, 3) for d in (50, 100, 200)]
+    return [calibrated / family / f'2x{n}_{d}nm_250g' for n in (10, 3) for d in (50, 100, 200)]
 
 
 def write_json(path, value):

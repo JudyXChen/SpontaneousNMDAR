@@ -29,7 +29,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.plot_style import apply_style, figure, shade, save
-MODEL = ROOT / 'model/calcium_total/evoked/1_cluster_10_NMDAR'
+MODEL = ROOT / 'model/calcium_total/evoked/1x10_500g'
 STATES = ('C0', 'C1', 'C2', 'D', 'O', 'B', 'C2B', 'DB', 'C1B', 'C0B')
 STATE_INDEX = {name: i for i, name in enumerate(STATES)}
 PARAMETERS = ('k_C0C1', 'k_C1C0', 'k_C1C2', 'k_C2C1', 'k_C20',
