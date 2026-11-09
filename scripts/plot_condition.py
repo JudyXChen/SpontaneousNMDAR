@@ -102,6 +102,9 @@ def positions(model_dir: Path, seed: int, iteration: int, species: str) -> np.nd
     return np.asarray(points, dtype=float).reshape(-1, 3)
 
 
+CLUSTER_PINK, CLUSTER_GREEN = '#E52B88', '#169B46'
+
+
 def plot_layout(model_dir: Path, output_dir: Path, seed: int) -> None:
     geometry = literal_assignments(
         model_dir / 'geometry/Mushroom_dendrite.py',
@@ -123,23 +126,26 @@ def plot_layout(model_dir: Path, output_dir: Path, seed: int) -> None:
     receptors = positions(model_dir, seed, 0, 'NMDAR_0')[:, :2] * 1000
     assigned = np.argmin(
         np.linalg.norm(receptors[:, None, :] - centers[None, :, :], axis=2), axis=1)
-    palette = colors(3)
+    # Same colors and sides as the later Ca_A (pink, +x) and Ca_B (green, -x) figures.
+    if len(centers) == 2:
+        styles = [('A', CLUSTER_PINK) if center[0] > centers[:, 0].mean() else ('B', CLUSTER_GREEN)
+                  for center in centers]
+    else:
+        styles = [('', CLUSTER_GREEN)]
     fig, ax = figure()
     ax.add_collection(PolyCollection(
         polygons(geometry['Mushroom_dendrite_PSD_wall_indices']),
         facecolor='#eeeeee', edgecolor='#d2d2d2', linewidth=0.3))
-    for number, (indices, center, color) in enumerate(
-            zip(regions, centers, palette[:2]), 1):
-        selected = assigned == number - 1
+    for number, (indices, center, (name, color)) in sorted(
+            enumerate(zip(regions, centers, styles)), key=lambda item: item[1][2][0]):
+        selected = assigned == number
         ax.add_collection(PolyCollection(
             polygons(indices), facecolor=color, alpha=0.2,
             edgecolor=color, linewidth=1))
-        ax.scatter(receptors[selected, 0], receptors[selected, 1], s=24,
-                   color=color, label=f'Cluster {number} (n={selected.sum()})',
-                   zorder=3)
-        ax.scatter(center[0], center[1], s=90, marker='x', color=palette[2],
-                   linewidths=2,
-                   label='Glutamate site' if number == 1 else None, zorder=4)
+        ax.scatter(receptors[selected, 0], receptors[selected, 1], s=24, color=color,
+                   label=f'Cluster {name} (n={selected.sum()})'.replace('  ', ' '), zorder=3)
+    ax.scatter(centers[:, 0], centers[:, 1], s=90, marker='x', color='black',
+               linewidths=2, label='Glutamate site', zorder=4)
     if len(centers) == 2:
         separation = np.linalg.norm(centers[0] - centers[1])
         print(f'Realized cluster-center separation: {separation:.3f} nm')

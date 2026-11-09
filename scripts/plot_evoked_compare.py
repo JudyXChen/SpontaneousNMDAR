@@ -4,6 +4,7 @@
   plot_evoked_compare.py batch BATCH_DIR [--seeds ...]            seed means with SD bands
   plot_evoked_compare.py small-cluster                            open NMDAR at low receptor counts
   plot_evoked_compare.py one-or-two                               one 10-NMDAR cluster vs 10+10
+  plot_evoked_compare.py controls [--controls DIR]                run_controls.sh, seeds 1-5, with open RyR
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.plot_style import apply_style, condition_color, figure, save, save_legend
+from scripts.plot_style import apply_style, colors, condition_color, figure, save, save_legend
 
 EVOKED = ROOT / 'results/calcium_total/evoked'
 CONDITIONS = EVOKED / 'conditions'
@@ -237,6 +238,133 @@ def run_batch(args):
         plot_group(batch, root / (folder + seed_label), seeds, count, tone, time, traces, warnings)
 
 
+# ---- control experiments (run/run_controls.sh), seeds 1-5 ----
+
+CONTROL_PANELS = PANELS + (('RyR_O_World.dat', 'Open RyR (count)', 'open_RyR'),)
+CONTROL_SEEDS = (1, 2, 3, 4, 5)
+NOV2 = ROOT / 'results/calcium_total/nov2/evoked'
+DISTANCE_BATCH = EVOKED / 'distance_seeds2_4'
+GLUTAMATE = (250, 500, 1000)
+DISTANCE_COLORS = dict(zip(DISTANCES, (condition_color(f, 'dark') for f in FAMILIES)))
+ONE_CLUSTER_COLORS = ('#8C8C8C', '#555555', '#1A1A1A')
+DOSE_STYLES = dict(zip(GLUTAMATE, (':', '--', '-')))
+
+
+def two_cluster(distance, glu, sites='both'):
+    """Run folder name of a 10+10 condition with glu per site."""
+    if sites == 'A':
+        return f'2_cluster_{distance}nm_gluA'
+    return f'2_cluster_{distance}nm' + ('' if glu == 250 else f'_{glu}_glu')
+
+
+def control_runs(controls, seed, label):
+    """Directory holding react_data/seed_NNNNN for one condition and seed."""
+    name = f'seed_{seed:05d}'
+    if label == '1_cluster_10_NMDAR_500_glu':
+        return NOV2 / '1_cluster_10_NMDAR' / name
+    if label in {two_cluster(d, 250) for d in DISTANCES}:
+        # Seeds 1 and 5 use the current NMDAR-first placement; seeds 2-4 are the distance batch.
+        return (NOV2 if seed in (1, 5) else DISTANCE_BATCH) / label / name
+    return controls / label / name
+
+
+def load_control(controls, label):
+    time = np.arange(3501) * 1e-5
+    traces = {}
+    for seed in CONTROL_SEEDS:
+        work = control_runs(controls, seed, label)
+        for filename, _, panel in CONTROL_PANELS:
+            path = work / 'react_data' / f'seed_{seed:05d}' / filename
+            if not path.is_file():
+                return None, f'{label} seed {seed}'
+            values = np.loadtxt(path)
+            if values.shape != (3501, 2) or not np.allclose(values[:, 0], time, rtol=0, atol=1e-10):
+                return None, f'{label} seed {seed} ({filename} incomplete)'
+            traces.setdefault(panel, []).append(values[:, 1])
+    return {panel: np.stack(rows) for panel, rows in traces.items()}, None
+
+
+def control_figures():
+    """name -> list of (run label, legend label, color, linestyle)."""
+    figures = {'one_vs_two': [
+        ('1_cluster_10_NMDAR_250_glu', '1×10, 250 glu', ONE_CLUSTER_COLORS[0], '--'),
+        ('1_cluster_10_NMDAR_500_glu', '1×10, 500 glu', ONE_CLUSTER_COLORS[1], '--'),
+        ('1_cluster_20_NMDAR_500_glu', '1×20, 500 glu', ONE_CLUSTER_COLORS[2], '--'),
+    ] + [(two_cluster(d, 250), f'2×10, 250+250 glu, {d} nm', DISTANCE_COLORS[d], '-') for d in DISTANCES]}
+    for glu in GLUTAMATE:
+        figures[f'distance_{glu}_glu'] = [
+            (two_cluster(d, glu), f'{d} nm', DISTANCE_COLORS[d], '-') for d in DISTANCES
+        ] + [(f'1_cluster_10_NMDAR_{glu}_glu', f'1×10, {glu} glu', ONE_CLUSTER_COLORS[1], '--')]
+    for d in DISTANCES:
+        figures[f'dose_{d}nm'] = [(two_cluster(d, glu), f'{glu} glu/site', DISTANCE_COLORS[d], DOSE_STYLES[glu])
+                                  for glu in GLUTAMATE]
+    figures['crosstalk'] = [(two_cluster(d, 250, 'A'), f'{d} nm, glu at A only', DISTANCE_COLORS[d], '-')
+                            for d in DISTANCES] + [
+        ('1_cluster_10_NMDAR_250_glu', '1×10, 250 glu', ONE_CLUSTER_COLORS[1], '--')]
+    return figures
+
+
+def run_controls(args):
+    controls = args.controls.resolve()
+    root = (args.output_dir or EVOKED / 'compare_controls').resolve()
+    time_ms = np.arange(3501) * 1e-2
+    cache, summary = {}, {}
+    for name, cases in control_figures().items():
+        missing = []
+        for label, *_ in cases:
+            if label not in cache:
+                cache[label] = load_control(controls, label)
+            if cache[label][1]:
+                missing.append(cache[label][1])
+        if missing:
+            print(f'SKIP {name}: missing {", ".join(missing)}')
+            continue
+        output = root / name
+        handles = [Line2D([], [], color=c, linestyle=s, label=l) for _, l, c, s in cases]
+        handles.append(Patch(facecolor='gray', alpha=0.16, edgecolor='none',
+                             label=f'±1 SD (n={len(CONTROL_SEEDS)})'))
+        for _, ylabel, panel in CONTROL_PANELS:
+            fig, ax = figure()
+            for label, _, color, style in cases:
+                samples = cache[label][0][panel]
+                mean, std = samples.mean(axis=0), samples.std(axis=0, ddof=1)
+                ax.fill_between(time_ms, np.maximum(0, mean - std), mean + std, color=color,
+                                alpha=0.16, linewidth=0, step='post')
+                ax.plot(time_ms, mean, color=color, linestyle=style, drawstyle='steps-post')
+            ax.set(xlabel='Time (ms)', ylabel=ylabel, xlim=(0, 35), ylim=(0, None))
+            ax.set_xticks((0, 10, 20, 30))
+            save(fig, output / f'{panel}.png', legend_name=None)
+        save_legend(handles, output / 'legend.png', figsize=(4.2, 0.25 * (len(handles) + 1)), ncol=1)
+        print(f'WROTE {output}')
+    # RyR opening is sparse, so each seed is also drawn on its own.
+    for label, (traces, error) in cache.items():
+        if error:
+            continue
+        fig, ax = figure()
+        for row, color in zip(traces['open_RyR'], colors(len(CONTROL_SEEDS))):
+            ax.plot(time_ms, row, color=color, drawstyle='steps-post', linewidth=1.2)
+        ax.set(xlabel='Time (ms)', ylabel='Open RyR (count)', xlim=(0, 35), ylim=(0, None), title=label)
+        ax.set_xticks((0, 10, 20, 30))
+        save(fig, root / 'open_RyR_per_seed' / f'{label}.png', legend_name=None)
+        final = lambda panel: [float(v) for v in traces[panel][:, -1]]
+        peak = lambda panel: [float(v) for v in traces[panel].max(axis=1)]
+        summary[label] = {
+            'seeds': list(CONTROL_SEEDS),
+            'final_NMDAR_Ca_entry': final('NMDAR_Ca_entry'),
+            'peak_open_NMDAR': peak('open_NMDAR'),
+            'peak_spine_cytosolic_Ca': peak('spine_cytosolic_Ca'),
+            'peak_open_RyR': peak('open_RyR'),
+            'seeds_with_RyR_opening': int((traces['open_RyR'].max(axis=1) > 0).sum()),
+        }
+    root.mkdir(parents=True, exist_ok=True)
+    (root / 'summary.json').write_text(json.dumps(dict(
+        note='Per-seed values, seeds 1-5. Bands in figures are mean ± sample SD (ddof=1).',
+        sources={'1_cluster_10_NMDAR_500_glu': str(NOV2 / '1_cluster_10_NMDAR'),
+                 '2_cluster_*nm (250 glu)': f'seeds 1, 5: {NOV2}; seeds 2-4: {DISTANCE_BATCH}',
+                 'other': str(controls)},
+        conditions=summary), indent=2) + '\n')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
@@ -250,6 +378,11 @@ def main():
     p.add_argument('--seeds', type=int, nargs='+', default=[1, 2, 3, 4])
     p.add_argument('--output-dir', type=Path)
     p.set_defaults(function=run_batch)
+    p = sub.add_parser('controls')
+    p.add_argument('--controls', type=Path, default=ROOT / 'results/calcium_total/controls',
+                   help='output of run/run_controls.sh')
+    p.add_argument('--output-dir', type=Path)
+    p.set_defaults(function=run_controls)
     for name, function in (('small-cluster', run_small_cluster), ('one-or-two', run_one_or_two)):
         p = sub.add_parser(name)
         p.add_argument('--output-dir', type=Path)

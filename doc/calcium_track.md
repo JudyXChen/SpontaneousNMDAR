@@ -12,7 +12,7 @@ not the glutamate release site: glutamate is shared and can reach both clusters.
 | NMDARs | 10 + 10, immobile |
 | Separation | 101.5, 200.5 or 405.2 nm, mirrored around the PSD center |
 | Glutamate | Per site; default 250, released at t = 0. `build.py --glutamate 1000 0` releases 1000 at A only |
-| Voltage | Clamped: −67 mV, 1 mM Mg²⁺, so all channel rates are constant |
+| Voltage | Clamped: −67 mV, 1 mM Mg²⁺, so all channel rates are constant. `*_evoked` conditions use the prescribed EPSP + bAP from t = 0. Either way, every channel sees the same voltage at each moment, with no spatial spread or feedback from channel openings |
 | Duration | 35 ms; pumps and buffers start unbound, with no equilibration |
 | Timestep | 0.1 µs; counts and particle frames every 10 µs |
 | Geometry | Spine and dendrite with the smooth, unlaminated ER (`SA` mesh), plus SERCA, 60 RyR and IP3R |

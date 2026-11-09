@@ -8,3 +8,4 @@
 | [Mg_calibration.md](Mg_calibration.md) | NMDAR magnesium block calibration |
 | [blender.md](blender.md) | Viewing calcium positions in Blender |
 | [run_local.md](run_local.md), [run_remote.md](run_remote.md) | Running evoked batches |
+| [run_windows.md](run_windows.md) | Running on Windows through WSL2 |
